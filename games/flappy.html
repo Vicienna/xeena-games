@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#101418">
+<meta name="theme-color" content="#EFEBE0">
 <meta name="xeena-worker" content="">
 <title>Flappy — Xeena Games</title>
 <link rel="stylesheet" href="../assets/styles.css">
@@ -70,7 +70,10 @@ function resize(){
   W=r.width; H=r.height;
 }
 
+let runId=0; // guard: cegah overlay game-over lama muncul di atas game baru
+
 function reset(){
+  runId++;
   bird={x:W*0.25, y:H/2, vy:0, r:14};
   pipes=[]; score=0; alive=true; frame=0; lastPipe=0;
   so.textContent='0';
@@ -109,13 +112,15 @@ function step(){
     }
   }
   pipes = pipes.filter(p=>p.x>-pipeW-10);
-  // floor / ceiling
-  if(bird.y+bird.r > H || bird.y-bird.r < 0) die();
+  // lantai = mati · plafon = mentok (tidak mati, khas Flappy Bird)
+  if(bird.y+bird.r > H) die();
+  else if(bird.y-bird.r < 0){ bird.y=bird.r; if(bird.vy<0) bird.vy=0; }
   draw();
 }
 
 function die(){
   alive=false;
+  const myRun=runId; // kalau pemain restart sebelum 200ms → jangan tampilkan overlay
   best=Math.max(best,score);
   localStorage.setItem('xeena.flappy.best', best);
   document.getElementById('best').textContent=best;
@@ -124,6 +129,7 @@ function die(){
   }
   // tampilkan game over
   setTimeout(()=>{
+    if(runId!==myRun) return; // game baru sudah mulai — buang overlay lama
     startEl.style.display='flex';
     startEl.querySelector('h2').textContent='Game Over';
     startEl.querySelector('p').textContent=`Skor: ${score} · Best: ${best}`;

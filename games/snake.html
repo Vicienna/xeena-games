@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#101418">
+<meta name="theme-color" content="#EFEBE0">
 <meta name="xeena-worker" content="">
 <title>Snake — Xeena Games</title>
 <link rel="stylesheet" href="../assets/styles.css">
@@ -50,8 +50,8 @@
     <button class="mode sel" data-walls="0">Tanpa Dinding</button>
     <button class="mode" data-walls="1">Dinding</button>
     <button class="mode" data-speed="slow">Lambat</button>
-    <button class="mode" data-speed="normal">Normal</button>
-    <button class="mode sel" data-speed="fast">Cepat</button>
+    <button class="mode sel" data-speed="normal">Normal</button>
+    <button class="mode" data-speed="fast">Cepat</button>
   </div>
   <div class="info">
     <div>Skor: <b id="score">0</b></div>
@@ -81,7 +81,8 @@ const cv=document.getElementById('c'), ctx=cv.getContext('2d');
 const scoreEl=document.getElementById('score'), bestEl=document.getElementById('best'),
       lenEl=document.getElementById('len');
 
-let GRID=20, CELL=20, snake=[], dir, nextDir, food, score, walls=0, speed=110, loopId=null, alive=true;
+let GRID=20, CELL=20, snake=[], dir, nextDir, food, score, walls=0, speed=100, speedMode='normal', loopId=null, alive=true;
+const SPEEDS={slow:140, normal:100, fast:70};
 
 function resize(){
   // sesuaikan ukuran cell dengan viewport
@@ -119,7 +120,7 @@ function step(){
     score+=10; scoreEl.textContent=score; lenEl.textContent=snake.length;
     spawnFood();
     // speedup
-    if(speed>50 && score%50===0) { speed-=5; restartLoop(); }
+    if(speed>SPEEDS[speedMode] && score%50===0) { speed-=5; restartLoop(); }
   }else{
     snake.pop();
   }
@@ -176,7 +177,7 @@ function die(){
   }
 }
 
-function speedLabel(){ if(speed>=110) return 'normal'; if(speed>=70) return 'fast'; return 'slow'; }
+function speedLabel(){ return speedMode; }
 
 function restartLoop(){
   if(loopId) clearInterval(loopId);
@@ -220,8 +221,8 @@ document.querySelectorAll('.mode[data-walls]').forEach(m=>m.addEventListener('cl
 document.querySelectorAll('.mode[data-speed]').forEach(m=>m.addEventListener('click',()=>{
   document.querySelectorAll('.mode[data-speed]').forEach(x=>x.classList.remove('sel'));
   m.classList.add('sel');
-  const sp=m.dataset.speed;
-  speed = sp==='slow'?140 : sp==='normal'?100 : 70;
+  speedMode=m.dataset.speed;
+  speed=SPEEDS[speedMode];
   if(loopId) restartLoop();
 }));
 document.getElementById('btnStart').addEventListener('click', start);

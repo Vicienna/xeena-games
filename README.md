@@ -6,12 +6,12 @@ Web app kumpulan game gratis, tanpa iklan, login email tanpa password. Dirancang
 
 | File / Folder | Untuk apa |
 |---|---|
-| `index.html` | Homepage grid 8 game (ala foony.com) |
+| `index.html` | Homepage indeks 8 game (gaya zine "Paper Arcade") |
 | `login.html` | Halaman login email+kode |
-| `assets/styles.css` | Design system gelap (sama di semua halaman) |
+| `assets/styles.css` | Design system "Paper Arcade" (kertas + layar CRT) |
 | `assets/app.js` | Sesi login, toast, helper API worker |
-| `games/8ball.html` | 8-Ball Pool **v2.0** — sudah di-upgrade (login, skor, back home) |
-| `games/tictactoe.html` | Tic-Tac-Toe: 3×3 + 5×5 (Connect 4), AI minimax |
+| `games/8ball.html` | 8-Ball Pool **v2.1** — fisika, spin, bot 3 level, P2P |
+| `games/tictactoe.html` | Tic-Tac-Toe: 3×3 + 5×5 (Connect 4), AI |
 | `games/memory.html` | Memory Match 4×4 & 6×6, tema emoji/huruf |
 | `games/snake.html` | Snake klasik, dinding on/off, dpad untuk mobile |
 | `games/2048.html` | 2048 + undo 3× |
@@ -21,6 +21,30 @@ Web app kumpulan game gratis, tanpa iklan, login email tanpa password. Dirancang
 | `worker/email-worker.js` | Cloudflare Worker: terima email verifikasi + API |
 | `worker/wrangler.toml` | Konfigurasi deploy worker |
 | `worker/package.json` | Script npm untuk deploy |
+
+## Changelog — v2.2 "Bug Hunt"
+
+Audit + playtest penuh di browser sungguhan (console bersih, 10/10 halaman).
+Bug yang ditemukan dan diperbaiki:
+
+**Bug fatal (game tidak jalan):**
+- **8-Ball vs Bot deadlock** — `canPlay()` memblokir bot menembak; giliran bot tidak pernah selesai. Bot sekarang lolos guard via `shoot(true)`.
+- **Tic-Tac-Toe vs AI deadlock** — guard `play()` memblokir AI menempatkan 'O'. Ditambah `parameter isAI`.
+- **Tic-Tac-Toe 5×5 freeze** — minimax depth-4 (±255rb node × 28 garis) menggantung browser. Diganti AI heuristik (menang→blok→skor sel), respons < 50 ms.
+
+**Bug gameplay:**
+- Minesweeper: klik pertama bisa langsung kena ranjau → ranjau kini ditaruh SETELAH klik pertama, zona klik + 8 tetangga dijamin aman (tertest 90/90).
+- Minesweeper mobile: long-press = pasang bendera TAPI juga membuka sel yang sama (bisa mati instan) → `preventDefault` di touchend setelah long-press.
+- 2048: undo bisa dipakai 2× untuk snapshot yang sama (menghabiskan jatah) → snapshot dikosongkan setelah dipakai; label tombol undo kini update (×3→×0).
+- 2048: mencapai tile 2048 memaksa mulai ulang → tombol "Lanjut Main" ditambahkan.
+- Flappy: restart < 200 ms setelah mati memicu overlay "Game Over" di atas game baru (race condition) → guard run-id.
+- Flappy: menyentuh plafon = mati → kini hanya mentok (sesuai Flappy Bird asli).
+- Tetris: kontrol sentuh rusak (`moveLeft? ...` bukan kode valid — swipe 15px langsung geser) → ditulis ulang: tap = putar, geser per kolom, geser bawah = soft/hard drop.
+- Tetris: hold saat spawn tertutup menumpuk piece di atas stack → cek validitas.
+- Tetris: CSS mobile `height:90vw*2` (invalid) → skala papan via JS.
+- Memory: emoji ganda di pool (bisa 4 kartu sama di papan) → pool unik; tema huruf pakai A–Z + 3 simbol Yunani.
+- Snake: label speed yang disubmit tidak cocok dengan tombol → mode speed dilacak eksplisit.
+- Tic-Tac-Toe: AI jalan duluan padahal pemain X → pemain selalu X dan jalan pertama; warna "seri" tidak di-reset.
 
 ## Cara login bekerja (yang kamu minta)
 

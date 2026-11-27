@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#101418">
+<meta name="theme-color" content="#EFEBE0">
 <meta name="xeena-worker" content="">
 <title>Minesweeper — Xeena Games</title>
 <link rel="stylesheet" href="../assets/styles.css">
@@ -16,19 +16,20 @@
   .mode.sel{border-color:var(--gold);color:var(--gold);background:#1a1b13}
   .info{display:flex;gap:18px;font-size:14px;color:var(--dim);font-weight:600;align-items:center}
   .info b{color:var(--gold);font-size:16px;font-variant-numeric:tabular-nums}
-  .info .icon{font-size:18px;color:var(--bad)}
+  .info .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+  .info .face{font-family:var(--mono);font-weight:700;color:var(--gold)}
   .grid{display:grid;gap:2px;background:#2b343e;padding:3px;border-radius:0}
   .cell{
-    width:30px;height:30px;background:#3a4350;border-radius:4px;display:grid;place-items:center;
+    width:30px;height:30px;background:#3a4350;border-radius:0;display:grid;place-items:center;
     font-weight:800;font-size:15px;cursor:pointer;user-select:none;font-family:var(--mono);transition:background .1s
   }
   .cell:hover{background:#4a5560}
   .cell.opened{background:#1a2026;cursor:default}
   .cell.opened:hover{background:#1a2026}
-  .cell.flag{color:var(--gold)}
+  .cell.flag{color:#e05252}
   .c1{color:#3fbf6b}.c2{color:#1d6ee0}.c3{color:#e05252}.c4{color:#7d3bbf}
   .c5{color:#8e2323}.c6{color:#1d9e4b}.c7{color:#5a6670}.c8{color:#e8e6e1}
-  .mine{background:#e05252 !important;color:#fff}
+  .mine{background:#e05252 !important;color:#141310}
   .btn{padding:10px 18px;border-radius:0;background:#C8FF2E;color:#141310;font-size:12.5px;font-weight:800;cursor:pointer;border:none}
   .btn:active{transform:scale(.97)}
   .btn.sec{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
@@ -56,9 +57,9 @@
     <button class="mode" data-diff="2">Ahli (16×30, 99)</button>
   </div>
   <div class="info">
-    <div><span class="icon">🚩</span> <b id="flags">0</b>/<b id="totalMines">10</b></div>
-    <div><span class="icon">⏱</span> <b id="time">0</b>s</div>
-    <div><span class="icon">🙂</span> <span id="face">😌</span></div>
+    <div><span class="lbl">Ranjau</span> <b id="flags">0</b>/<b id="totalMines">10</b></div>
+    <div><span class="lbl">Waktu</span> <b id="time">0</b>s</div>
+    <div><span class="lbl">Status</span> <span class="face" id="face">:-)</span></div>
   </div>
   <div class="result" id="result">&nbsp;</div>
   <div class="grid" id="grid"></div>
@@ -78,7 +79,8 @@ const DIFFS=[
   {w:16,h:16,m:40,cls:'md'},
   {w:30,h:16,m:99,cls:'lg'}
 ];
-let diff=0, grid, opened, flagged, gameOver, win, started, timerId, timeStart;
+let diff=0, grid, opened, flagged, gameOver, win, started, timerId, timeStart, minesPlaced=false;
+const MINE_CH='✸', FLAG_CH='⚑';
 
 const gridEl=document.getElementById('grid');
 const flagsEl=document.getElementById('flags');
@@ -93,12 +95,29 @@ function newGame(){
   grid=Array(d.h).fill().map(()=>Array(d.w).fill(0));
   opened=Array(d.h).fill().map(()=>Array(d.w).fill(false));
   flagged=Array(d.h).fill().map(()=>Array(d.w).fill(false));
-  gameOver=false; win=false; started=false; timeStart=0;
-  // taruh mines
+  gameOver=false; win=false; started=false; timeStart=0; minesPlaced=false;
+  // Ranjau ditaruh SETELAH klik pertama — klik pertama (plus tetangganya) dijamin aman
+  flagsEl.textContent=0;
+  totalMinesEl.textContent=d.m;
+  timeEl.textContent=0;
+  faceEl.textContent=':-)';
+  resultEl.innerHTML='&nbsp;';
+  resultEl.classList.remove('bad');
+  render();
+}
+
+function placeMines(sx,sy){
+  const d=DIFFS[diff];
+  // zona aman: sel klik pertama + 8 tetangganya
+  const safe=new Set();
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+    const nx=sx+dx, ny=sy+dy;
+    if(nx>=0&&nx<d.w&&ny>=0&&ny<d.h) safe.add(ny*d.w+nx);
+  }
   let placed=0;
   while(placed<d.m){
     const x=Math.floor(Math.random()*d.w), y=Math.floor(Math.random()*d.h);
-    if(grid[y][x]!==-1){ grid[y][x]=-1; placed++; }
+    if(grid[y][x]!==-1 && !safe.has(y*d.w+x)){ grid[y][x]=-1; placed++; }
   }
   // hitung neighbors
   for(let y=0;y<d.h;y++)for(let x=0;x<d.w;x++){
@@ -111,13 +130,7 @@ function newGame(){
     }
     grid[y][x]=n;
   }
-  flagsEl.textContent=0;
-  totalMinesEl.textContent=d.m;
-  timeEl.textContent=0;
-  faceEl.textContent='😌';
-  resultEl.innerHTML='&nbsp;';
-  resultEl.classList.remove('bad');
-  render();
+  minesPlaced=true;
 }
 
 function render(){
@@ -131,25 +144,29 @@ function render(){
       c.classList.add('opened');
       if(grid[y][x]===-1){
         c.classList.add('mine');
-        c.textContent='💣';
+        c.textContent=MINE_CH;
       }else if(grid[y][x]>0){
         c.classList.add('c'+grid[y][x]);
         c.textContent=grid[y][x];
       }
     }else if(flagged[y][x]){
       c.classList.add('flag');
-      c.textContent='🚩';
+      c.textContent=FLAG_CH;
     }
     c.dataset.x=x; c.dataset.y=y;
     c.onclick=()=>reveal(x,y);
     c.oncontextmenu=(e)=>{ e.preventDefault(); toggleFlag(x,y); };
-    // long-press for mobile
+    // long-press untuk flag di mobile.
+    // Tekan ≥350ms → toggle flag dan CEGAH click yang menyusul (bug lama: flag+reveal sekaligus).
     let pressTimer=null;
-    c.addEventListener('touchstart', e=>{
-      pressTimer=setTimeout(()=>{ e.preventDefault(); toggleFlag(x,y); pressTimer=null; }, 350);
+    c.addEventListener('touchstart', ()=>{
+      pressTimer=setTimeout(()=>{ pressTimer='fired'; toggleFlag(x,y); }, 350);
+    },{passive:true});
+    c.addEventListener('touchend', e=>{
+      if(pressTimer && pressTimer!=='fired'){ clearTimeout(pressTimer); }
+      if(pressTimer==='fired'){ e.preventDefault(); pressTimer=null; } // matikan click sintetis
     });
-    c.addEventListener('touchend', ()=>{ if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; } });
-    c.addEventListener('touchmove', ()=>{ if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; } });
+    c.addEventListener('touchmove', ()=>{ if(pressTimer && pressTimer!=='fired'){ clearTimeout(pressTimer); pressTimer=null; } },{passive:true});
     gridEl.appendChild(c);
   }
 }
@@ -164,16 +181,18 @@ function stopTimer(){ if(timerId){ clearInterval(timerId); timerId=null; } }
 
 function reveal(x,y){
   if(gameOver||win) return;
-  if(!started) startTimer();
   if(flagged[y][x]||opened[y][x]) return;
+  if(!started){ startTimer(); }
   const d=DIFFS[diff];
+  // klik pertama → taruh ranjau sekarang, zona klik dijamin aman
+  if(!minesPlaced) placeMines(x,y);
   if(grid[y][x]===-1){
     // kena mine
     opened[y][x]=true;
     revealAllMines();
     gameOver=true; stopTimer();
-    faceEl.textContent='💀';
-    resultEl.textContent='💥 Boom! Kamu kena ranjau.';
+    faceEl.textContent='X-(';
+    resultEl.textContent='Boom! Kamu kena ranjau.';
     resultEl.classList.add('bad');
     render();
     submitScore(false);
@@ -207,10 +226,9 @@ function revealAllMines(){
 function toggleFlag(x,y){
   if(gameOver||win) return;
   if(opened[y][x]) return;
-  if(!started) startTimer();
   flagged[y][x]=!flagged[y][x];
   let count=0;
-  for(let y=0;y<DIFFS[diff].h;y++)for(let x=0;x<DIFFS[diff].w;x++) if(flagged[y][x]) count++;
+  for(let yy=0;yy<DIFFS[diff].h;yy++)for(let xx=0;xx<DIFFS[diff].w;xx++) if(flagged[yy][xx]) count++;
   flagsEl.textContent=count;
   render();
   checkWin();
@@ -223,7 +241,7 @@ function checkWin(){
   for(let y=0;y<d.h;y++)for(let x=0;x<d.w;x++) if(!opened[y][x]) unopened++;
   if(unopened===d.m){
     win=true; stopTimer();
-    faceEl.textContent='😎';
+    faceEl.textContent='8-)';
     const t=Math.floor((Date.now()-timeStart)/1000);
     resultEl.innerHTML=`Menang! Waktu <b>${t}s</b>`;
     submitScore(true, t);

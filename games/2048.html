@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#101418">
+<meta name="theme-color" content="#EFEBE0">
 <meta name="xeena-worker" content="">
 <title>2048 — Xeena Games</title>
 <link rel="stylesheet" href="../assets/styles.css">
@@ -89,8 +89,9 @@ function reset(){
   grid=Array(16).fill(0); score=0; won=false; over=false; undosLeft=3;
   prevGrid=null; prevScore=0;
   document.getElementById('overlay').style.display='none';
+  document.getElementById('btnRetry').textContent='Coba Lagi';
   spawn(); spawn();
-  render();
+  render(); updUndoBtn();
 }
 
 function spawn(){
@@ -125,9 +126,10 @@ function saveSnapshot(){
 
 function undo(){
   if(!prevGrid||undosLeft<=0) return;
-  grid=prevGrid.slice(); score=prevScore; undosLeft--;
-  over=false; document.getElementById('overlay').style.display='none';
-  render();
+  grid=prevGrid.slice(); score=prevScore; undosLeft--; prevGrid=null;
+  over=false; // won tidak diubah — kalau sudah pernah 2048, tetap tidak pop-up lagi
+  document.getElementById('overlay').style.display='none';
+  render(); updUndoBtn();
 }
 
 function slide(row){
@@ -196,22 +198,28 @@ function hasMoves(){
   return false;
 }
 
+function updUndoBtn(){
+  document.getElementById('btnUndo').textContent='Batal (×'+undosLeft+')';
+  document.getElementById('btnUndo').disabled=undosLeft<=0;
+}
+
 function move(dir){
   if(over) return;
+  if(document.getElementById('overlay').style.display==='flex') return; // tunggu overlay ditutup
   let moved=false;
   if(dir==='left') moved=moveLeft();
   else if(dir==='right') moved=moveRight();
   else if(dir==='up') moved=moveUp();
   else if(dir==='down') moved=moveDown();
   if(moved){
-    // jika ternyata tidak benar-benar berubah (semua sudah slide tanpa effect) reset snapshot
     spawn();
-    render();
+    render(); updUndoBtn();
     // cek menang
     if(!won && grid.some(v=>v>=2048)){
       won=true;
       document.getElementById('ovTitle').textContent='You Win!';
-      document.getElementById('ovSub').textContent='Skor: '+score+' — Lanjut untuk skor lebih tinggi';
+      document.getElementById('ovSub').textContent='Skor: '+score+' — lanjut main untuk skor lebih tinggi';
+      document.getElementById('btnRetry').textContent='Lanjut Main';
       document.getElementById('overlay').style.display='flex';
       submitScore();
     }
@@ -219,6 +227,7 @@ function move(dir){
       over=true;
       document.getElementById('ovTitle').textContent='Game Over';
       document.getElementById('ovSub').textContent='Skor: '+score;
+      document.getElementById('btnRetry').textContent='Coba Lagi';
       document.getElementById('overlay').style.display='flex';
       submitScore();
     }
@@ -255,7 +264,12 @@ boardEl.addEventListener('touchend', e=>{
 
 document.getElementById('btnNew').addEventListener('click', reset);
 document.getElementById('btnUndo').addEventListener('click', undo);
-document.getElementById('btnRetry').addEventListener('click', reset);
+document.getElementById('btnRetry').addEventListener('click', ()=>{
+  // Kalau overlay = win, tombol "Lanjut Main" cuma nutup overlay.
+  // Kalau game over, mulai game baru.
+  if(over){ reset(); }
+  else { document.getElementById('overlay').style.display='none'; }
+});
 
 best=+localStorage.getItem('xeena.2048.best')||0;
 bestEl.textContent=best;

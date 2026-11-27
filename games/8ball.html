@@ -740,8 +740,11 @@ function bindInput(){
    document.getElementById('spinDot').style.transform='translate(-50%,-50%)';}
  });
 }
-function shoot(){
- if(!canPlay()||!cue.on||placing)return;
+function shoot(fromBot){
+ // HUMAN dicek via canPlay(); BOT lolos (bug lama: canPlay() return turn===1 utk mode bot
+ // → bot gak pernah bisa nembak → deadlock di giliran bot)
+ if(fromBot){ if(gameOver||moving||paused||placing||!cue.on) return; }
+ else if(!canPlay()||!cue.on||placing) return;
  Snd.strike();strikeT=performance.now();
  if(SET.vib&&navigator.vibrate)try{navigator.vibrate(12);}catch(e){}
  stats[turn].s++;
@@ -964,7 +967,7 @@ function botPlay(){
   ang=Math.atan2(nb.y-cue.y,nb.x-cue.x)+(Math.random()-.5)*.02;
   pw=.16;}
  aim.ang=ang;aim.pow=pw;updMeter();
- setTimeout(()=>{if(turn===2&&!moving&&!gameOver)shoot();},550);
+ setTimeout(()=>{if(turn===2&&!moving&&!gameOver)shoot(true);},550);
 }
 
 /* ---------- net ---------- */

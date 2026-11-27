@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#101418">
+<meta name="theme-color" content="#EFEBE0">
 <meta name="xeena-worker" content="">
 <title>Tic-Tac-Toe — Xeena Games</title>
 <link rel="stylesheet" href="../assets/styles.css">
@@ -99,8 +99,9 @@ function newGame(){
   board=Array(n*n).fill('');
   current='X'; winner=null; winLine=[];
   resultEl.innerHTML='&nbsp;';
+  resultEl.classList.remove('bad');
   renderBoard();
-  if(mode==='3-ai-easy'||mode==='3-ai-hard'||mode==='5-ai') setTimeout(aiMove, 400);
+  // Pemain (X) selalu jalan duluan — standar tic-tac-toe
 }
 
 function renderBoard(){
@@ -118,11 +119,11 @@ function renderBoard(){
   turnEl.textContent=winner?'-':current;
 }
 
-function play(i){
+function play(i, isAI){
   if(winner||board[i]) return;
-  // tidak boleh main kalau giliran AI di mode AI
+  // mode AI: blok klik MANUSIA saat giliran AI (current 'O'). AI lolos via isAI.
   const aiTurn = (mode==='3-ai-easy'||mode==='3-ai-hard'||mode==='5-ai');
-  if(aiTurn && current==='O') return;
+  if(aiTurn && !isAI && current==='O') return;
   board[i]=current;
   if(checkEnd()) { renderBoard(); return; }
   current = current==='X'?'O':'X';
@@ -186,28 +187,69 @@ function updateScores(){
 // === AI ===
 function aiMove(){
   if(winner) return;
-  const n=sizeMap[mode];
   if(mode==='3-ai-easy'){
     // 70% random, 30% optimal
     if(Math.random()<0.7){
       const empty=board.map((v,i)=>v?'':i).filter(x=>x!=='');
-      if(empty.length){ play(empty[Math.floor(Math.random()*empty.length)]); return; }
+      if(empty.length){ play(empty[Math.floor(Math.random()*empty.length)], true); return; }
     }
     const best=minimax(board,'O',true,8);
-    if(best.idx!=null) play(best.idx);
+    if(best.idx!=null) play(best.idx, true);
     return;
   }
   if(mode==='3-ai-hard'){
     const best=minimax(board,'O',true,9);
-    if(best.idx!=null) play(best.idx);
+    if(best.idx!=null) play(best.idx, true);
     return;
   }
   if(mode==='5-ai'){
-    // 5x5 connect 4 — gunakan heuristic minimax depth 4
-    const best=minimax(board,'O',true,4, targetMap['5-ai']);
-    if(best.idx!=null) play(best.idx);
+    // 5x5 connect-4 — AI heuristik cepat (minimax depth 4 = 255rb node → freeze browser)
+    const idx=ai5x5();
+    if(idx!=null) play(idx, true);
     return;
   }
+}
+
+// === AI 5x5: 1) menang sekarang 2) blok 3) skor heuristik tiap sel ===
+function lines5(){
+  const n=5,t=4,lines=[];
+  for(let r=0;r<n;r++) for(let c=0;c<=n-t;c++)
+    lines.push(Array.from({length:t},(_,k)=>r*n+c+k));
+  for(let c=0;c<n;c++) for(let r=0;r<=n-t;r++)
+    lines.push(Array.from({length:t},(_,k)=>(r+k)*n+c));
+  for(let r=0;r<=n-t;r++) for(let c=0;c<=n-t;c++)
+    lines.push(Array.from({length:t},(_,k)=>(r+k)*n+c+k));
+  for(let r=0;r<=n-t;r++) for(let c=t-1;c<n;c++)
+    lines.push(Array.from({length:t},(_,k)=>(r+k)*n+c-k));
+  return lines;
+}
+const LINES5=lines5();
+function ai5x5(){
+  const empty=board.map((v,i)=>v?'':i).filter(x=>x!=='');
+  if(!empty.length) return null;
+  // 1) langkah menang untuk O
+  for(const i of empty){ board[i]='O'; const w=winnerOf(board,4,5); board[i]=''; if(w==='O') return i; }
+  // 2) blok kemenangan X
+  for(const i of empty){ board[i]='X'; const w=winnerOf(board,4,5); board[i]=''; if(w==='X') return i; }
+  // 3) heuristik: nilai setiap sel dari garis yang melewatinya
+  let best=-Infinity, cands=[];
+  for(const i of empty){
+    const r=Math.floor(i/5), c=i%5;
+    let s=0;
+    for(const ln of LINES5){
+      if(!ln.includes(i)) continue;
+      let o=0,x=0;
+      for(const j of ln){ if(board[j]==='O')o++; else if(board[j]==='X')x++; }
+      if(o&&x) continue;              // garis mati → skip
+      s += (o?Math.pow(4,o):0) + (x?Math.pow(4,x)*1.05:0); // menang > bertahan
+    }
+    // sedikit bonus posisi tengah
+    const dc=Math.abs(c-2), dr=Math.abs(r-2);
+    s += (4-dc-dr)*0.4;
+    s += Math.random()*0.5; // variasi biar tidak kaku
+    if(s>best){ best=s; cands=[i]; }
+  }
+  return cands[0];
 }
 
 // minimax untuk 3x3 (target 3)

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#101418">
+<meta name="theme-color" content="#EFEBE0">
 <meta name="xeena-worker" content="">
 <title>Memory Match — Xeena Games</title>
 <link rel="stylesheet" href="../assets/styles.css">
@@ -19,17 +19,17 @@
   .grid{display:grid;gap:8px}
   .card{
     width:100%;aspect-ratio:1;border-radius:0;cursor:pointer;
-    background:linear-gradient(160deg,#3a4350,#2b343e);
-    border:1px solid var(--line);display:grid;place-items:center;
-    font-size:34px;transition:all .15s;position:relative;overflow:hidden;
+    background:#2b343e;border:1px solid var(--line);display:grid;place-items:center;
+    font-size:34px;transition:transform .12s,border-color .12s;position:relative;overflow:hidden;
   }
   .card:hover{border-color:#3d4a56}
+  .card:active{transform:scale(.96)}
   .card .face{position:absolute;inset:0;display:grid;place-items:center;font-size:30px}
-  .card .back{background:linear-gradient(160deg,#3a4350,#2b343e);color:var(--dim);font-size:14px;font-weight:800;letter-spacing:2px}
-  .card .front{transform:rotateY(0deg);background:linear-gradient(160deg,#1f262e,#181d23);color:var(--gold)}
+  .card .back{background:#2b343e;color:var(--dim);font-size:15px;font-weight:800;letter-spacing:2px}
   .card.flipped .back{display:none}
-  .card.matched .front{background:#1a2a1b;color:var(--ok);border:1px solid #3fbf6b55}
-  .card.matched{cursor:default}
+  .card.flipped{border-color:#4a5560}
+  .card.matched .front{color:var(--ok);border:1px solid #3fbf6b66}
+  .card.matched{cursor:default;opacity:.85}
   .grid4{grid-template-columns:repeat(4,1fr);width:min(440px,92vw)}
   .grid6{grid-template-columns:repeat(6,1fr);width:min(560px,96vw)}
   .grid6 .card{font-size:24px}.grid6 .card .face{font-size:22px}
@@ -72,8 +72,8 @@ let size=4, theme='emoji';
 let cards=[], flipped=[], matched=0, moves=0, lock=false, startT=0, timerId=null;
 
 const THEMES={
-  emoji:['🎮','🎯','🎲','🎨','🎭','🃏','🎺','🎸','🎹','🎷','🥁','🎻','🎤','🎧','🎼','🎲','⭐','🌙','🔥','💧','🌈','☀️','❄️','⚡','🍀','🌟','💎','🔮','🎯','🧩','🚀','🎮','🎲','🎨','🎭'],
-  letter:['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','α','β','γ','δ','ε','ζ','η','θ','λ','μ']
+  emoji:['🎲','🎯','🎮','🎨','🎭','🃏','🎺','🎸','🎹','🎷','🥁','🎻','🎤','🎧','⭐','🌙','🔥','💧','🌈','☀️','❄️','⚡','🍀','💎','🔮','🧩','🚀','🎈'],
+  letter:['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','Ω','Δ','Ξ']
 };
 
 const gridEl=document.getElementById('grid');
