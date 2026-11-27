@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#101418">
+<meta name="xeena-worker" content="">
+<title>Tic-Tac-Toe — Xeena Games</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  .stage{padding:24px 16px;display:flex;flex-direction:column;align-items:center;gap:16px}
+  .modes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .mode{padding:8px 14px;border-radius:9px;background:var(--panel);border:1px solid var(--line);
+    font-size:12px;font-weight:700;letter-spacing:.3px;transition:all .15s;cursor:pointer}
+  .mode:hover{border-color:#3d4a56;background:var(--panel2)}
+  .mode.sel{border-color:var(--gold);color:var(--gold);background:#1a1b13}
+  .info{display:flex;gap:18px;font-size:13px;color:var(--dim);font-weight:600}
+  .info b{color:var(--txt)}
+  .info .turn{color:var(--gold);font-weight:800}
+  .board3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(360px,88vw);aspect-ratio:1}
+  .board5{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;width:min(420px,92vw);aspect-ratio:1}
+  .cell{background:var(--panel);border:1px solid var(--line);border-radius:11px;
+    display:grid;place-items:center;font-size:42px;font-weight:800;cursor:pointer;
+    transition:background .12s,border-color .12s;user-select:none}
+  .cell:hover{background:var(--panel2);border-color:#3d4a56}
+  .cell.x{color:var(--gold)}.cell.o{color:var(--ok)}
+  .cell.win{background:#1a1b13;border-color:var(--gold)}
+  .cell.disabled{cursor:default}
+  .board5 .cell{font-size:30px;border-radius:7px}
+  .result{font-size:18px;font-weight:800;letter-spacing:-.3px;min-height:24px;color:var(--gold)}
+  .result.bad{color:var(--bad)}
+  .btnrow{display:flex;gap:9px;flex-wrap:wrap;justify-content:center}
+  .btn{padding:10px 18px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);
+    font-size:12.5px;font-weight:700;cursor:pointer;transition:all .15s}
+  .btn:hover{border-color:var(--gold);color:var(--gold)}
+  .btn:active{transform:scale(.97)}
+  .btn.primary{background:linear-gradient(180deg,#f0c45e,#d49a30);color:#20180a;border:none}
+  .scoreline{display:flex;gap:18px;font-size:12.5px;color:var(--dim);font-weight:600}
+  .scoreline b{color:var(--txt)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="../index.html" style="cursor:pointer">
+    <div class="logo">X</div><div><div class="name"><b>Xeena</b> Games</div><div class="sub">Tic-Tac-Toe</div></div>
+  </a>
+  <div class="spacer"></div>
+  <div class="userchip"></div>
+</div>
+
+<main class="stage">
+  <div class="modes">
+    <button class="mode sel" data-mode="3-ai-easy">3×3 · AI Mudah</button>
+    <button class="mode" data-mode="3-ai-hard">3×3 · AI Pro</button>
+    <button class="mode" data-mode="3-2p">3×3 · 2 Pemain</button>
+    <button class="mode" data-mode="5-ai">5×5 · Connect 4 · AI</button>
+    <button class="mode" data-mode="5-2p">5×5 · Connect 4 · 2P</button>
+  </div>
+
+  <div class="info">
+    <div>Giliran: <span class="turn" id="turn">X</span></div>
+    <div id="vsLine">vs AI Mudah</div>
+  </div>
+
+  <div class="result" id="result">&nbsp;</div>
+
+  <div class="board3" id="board"></div>
+
+  <div class="scoreline">
+    <div>X: <b id="sx">0</b></div>
+    <div>O: <b id="so">0</b></div>
+    <div>Draw: <b id="sd">0</b></div>
+  </div>
+
+  <div class="btnrow">
+    <button class="btn primary" id="btnNew">Main Lagi</button>
+    <button class="btn" id="btnReset">Reset Skor</button>
+  </div>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+'use strict';
+let mode='3-ai-easy';   // 3-ai-easy | 3-ai-hard | 3-2p | 5-ai | 5-2p
+let board=[], current='X', winner=null, winLine=[];
+let scores={X:0,O:0,D:0};
+
+const boardEl=document.getElementById('board');
+const turnEl=document.getElementById('turn');
+const resultEl=document.getElementById('result');
+const vsEl=document.getElementById('vsLine');
+
+const labels={'3-ai-easy':'vs AI Mudah','3-ai-hard':'vs AI Pro (unbeatable)','3-2p':'2 Pemain','5-ai':'vs AI (Connect 4)','5-2p':'2 Pemain (Connect 4)'};
+const sizeMap={'3-ai-easy':3,'3-ai-hard':3,'3-2p':3,'5-ai':5,'5-2p':5};
+const targetMap={'3-ai-easy':3,'3-ai-hard':3,'3-2p':3,'5-ai':4,'5-2p':4};
+
+function newGame(){
+  const n=sizeMap[mode];
+  board=Array(n*n).fill('');
+  current='X'; winner=null; winLine=[];
+  resultEl.innerHTML='&nbsp;';
+  renderBoard();
+  if(mode==='3-ai-easy'||mode==='3-ai-hard'||mode==='5-ai') setTimeout(aiMove, 400);
+}
+
+function renderBoard(){
+  const n=sizeMap[mode];
+  boardEl.className = n===3 ? 'board3' : 'board5';
+  boardEl.innerHTML='';
+  for(let i=0;i<n*n;i++){
+    const c=document.createElement('div');
+    c.className='cell'+(board[i]==='X'?' x':board[i]==='O'?' o':'')+(winLine.includes(i)?' win':'');
+    c.textContent=board[i];
+    if(winner||board[i]) c.classList.add('disabled');
+    c.onclick=()=>play(i);
+    boardEl.appendChild(c);
+  }
+  turnEl.textContent=winner?'-':current;
+}
+
+function play(i){
+  if(winner||board[i]) return;
+  // tidak boleh main kalau giliran AI di mode AI
+  const aiTurn = (mode==='3-ai-easy'||mode==='3-ai-hard'||mode==='5-ai');
+  if(aiTurn && current==='O') return;
+  board[i]=current;
+  if(checkEnd()) { renderBoard(); return; }
+  current = current==='X'?'O':'X';
+  renderBoard();
+  if(aiTurn && current==='O') setTimeout(aiMove, 380);
+}
+
+function checkEnd(){
+  const n=sizeMap[mode], t=targetMap[mode];
+  // cek garis menang
+  const lines=[];
+  // horizontal
+  for(let r=0;r<n;r++) for(let c=0;c<=n-t;c++){
+    const idx=Array.from({length:t},(_,k)=>r*n+c+k);
+    lines.push(idx);
+  }
+  // vertical
+  for(let c=0;c<n;c++) for(let r=0;r<=n-t;r++){
+    const idx=Array.from({length:t},(_,k)=>(r+k)*n+c);
+    lines.push(idx);
+  }
+  // diagonal down-right
+  for(let r=0;r<=n-t;r++) for(let c=0;c<=n-t;c++){
+    const idx=Array.from({length:t},(_,k)=>(r+k)*n+c+k);
+    lines.push(idx);
+  }
+  // diagonal down-left
+  for(let r=0;r<=n-t;r++) for(let c=t-1;c<n;c++){
+    const idx=Array.from({length:t},(_,k)=>(r+k)*n+c-k);
+    lines.push(idx);
+  }
+  for(const ln of lines){
+    const v=board[ln[0]];
+    if(v && ln.every(i=>board[i]===v)){
+      winner=v; winLine=ln;
+      scores[v]++;
+      resultEl.textContent=`${v} menang!`;
+      updateScores();
+      submitIfLogin();
+      return true;
+    }
+  }
+  if(board.every(c=>c)){
+    winner='D'; scores.D++;
+    resultEl.textContent='Seri!';
+    resultEl.classList.add('bad');
+    updateScores();
+    return true;
+  }
+  return false;
+}
+
+function updateScores(){
+  document.getElementById('sx').textContent=scores.X;
+  document.getElementById('so').textContent=scores.O;
+  document.getElementById('sd').textContent=scores.D;
+  // simpan skor ke localStorage
+  localStorage.setItem('xeena.ttt.scores', JSON.stringify(scores));
+}
+
+// === AI ===
+function aiMove(){
+  if(winner) return;
+  const n=sizeMap[mode];
+  if(mode==='3-ai-easy'){
+    // 70% random, 30% optimal
+    if(Math.random()<0.7){
+      const empty=board.map((v,i)=>v?'':i).filter(x=>x!=='');
+      if(empty.length){ play(empty[Math.floor(Math.random()*empty.length)]); return; }
+    }
+    const best=minimax(board,'O',true,8);
+    if(best.idx!=null) play(best.idx);
+    return;
+  }
+  if(mode==='3-ai-hard'){
+    const best=minimax(board,'O',true,9);
+    if(best.idx!=null) play(best.idx);
+    return;
+  }
+  if(mode==='5-ai'){
+    // 5x5 connect 4 — gunakan heuristic minimax depth 4
+    const best=minimax(board,'O',true,4, targetMap['5-ai']);
+    if(best.idx!=null) play(best.idx);
+    return;
+  }
+}
+
+// minimax untuk 3x3 (target 3)
+function minimax(b, player, maxing, depth, target){
+  const n=sizeMap[mode];
+  const t=target||targetMap[mode];
+  // cek terminal
+  const w=winnerOf(b,t,n);
+  if(w==='O') return {score:10-depth};
+  if(w==='X') return {score:depth-10};
+  if(b.every(c=>c)||depth<=0) return {score:0};
+  const empty=b.map((v,i)=>v?'':i).filter(x=>x!=='');
+  if(maxing){
+    let best={score:-Infinity,idx:null};
+    for(const i of empty){
+      const nb=b.slice(); nb[i]='O';
+      const r=minimax(nb,'X',false,depth-1,t);
+      if(r.score>best.score){ best={score:r.score,idx:i}; }
+    }
+    return best;
+  }else{
+    let best={score:Infinity,idx:null};
+    for(const i of empty){
+      const nb=b.slice(); nb[i]='X';
+      const r=minimax(nb,'O',true,depth-1,t);
+      if(r.score<best.score){ best={score:r.score,idx:i}; }
+    }
+    return best;
+  }
+}
+
+function winnerOf(b,t,n){
+  // build lines untuk n×n connect-t
+  const lines=[];
+  for(let r=0;r<n;r++) for(let c=0;c<=n-t;c++){
+    lines.push(Array.from({length:t},(_,k)=>r*n+c+k));
+  }
+  for(let c=0;c<n;c++) for(let r=0;r<=n-t;r++){
+    lines.push(Array.from({length:t},(_,k)=>(r+k)*n+c));
+  }
+  for(let r=0;r<=n-t;r++) for(let c=0;c<=n-t;c++){
+    lines.push(Array.from({length:t},(_,k)=>(r+k)*n+c+k));
+  }
+  for(let r=0;r<=n-t;r++) for(let c=t-1;c<n;c++){
+    lines.push(Array.from({length:t},(_,k)=>(r+k)*n+c-k));
+  }
+  for(const ln of lines){
+    const v=b[ln[0]];
+    if(v && ln.every(i=>b[i]===v)) return v;
+  }
+  return null;
+}
+
+// === events ===
+document.querySelectorAll('.mode').forEach(m=>m.addEventListener('click',()=>{
+  document.querySelectorAll('.mode').forEach(x=>x.classList.remove('sel'));
+  m.classList.add('sel');
+  mode=m.dataset.mode;
+  vsEl.textContent=labels[mode];
+  resultEl.classList.remove('bad');
+  newGame();
+}));
+document.getElementById('btnNew').addEventListener('click', newGame);
+document.getElementById('btnReset').addEventListener('click',()=>{
+  if(!confirm('Reset semua skor?')) return;
+  scores={X:0,O:0,D:0}; updateScores(); newGame();
+});
+
+// load scores
+try{ const s=JSON.parse(localStorage.getItem('xeena.ttt.scores')||'{}'); if(s.X!=null) scores=s; }catch(e){}
+updateScores();
+newGame();
+XEENA.renderUserChip();
+
+async function submitIfLogin(){
+  if(!XEENA.isLoggedIn()) return;
+  // skor = jumlah menang
+  const score = scores.X * 10 + (mode==='3-ai-hard'?50:0) + (mode==='5-ai'?30:0);
+  XEENA.submitScore('tictactoe', score, {mode, scores}).catch(()=>{});
+}
+</script>
+</body>
+</html>

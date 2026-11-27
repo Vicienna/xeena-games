@@ -1,0 +1,17 @@
+{
+  "name": "xeena-games-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Worker untuk Xeena Games: terima email verifikasi + API login/skor",
+  "main": "email-worker.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "kv:create": "wrangler kv:namespace create XEENA_KV",
+    "kv:create:preview": "wrangler kv:namespace create XEENA_KV --preview",
+    "secret:allow": "wrangler secret put ALLOWED_FROM"
+  },
+  "devDependencies": {
+    "wrangler": "^3.78.0"
+  }
+}

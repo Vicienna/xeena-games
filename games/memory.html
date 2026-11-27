@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#101418">
+<meta name="xeena-worker" content="">
+<title>Memory Match — Xeena Games</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  .stage{padding:24px 16px;display:flex;flex-direction:column;align-items:center;gap:14px}
+  .modes{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+  .mode{padding:7px 12px;border-radius:9px;background:var(--panel);border:1px solid var(--line);
+    font-size:12px;font-weight:700;letter-spacing:.3px;cursor:pointer;transition:all .15s}
+  .mode:hover{border-color:#3d4a56;background:var(--panel2)}
+  .mode.sel{border-color:var(--gold);color:var(--gold);background:#1a1b13}
+  .info{display:flex;gap:18px;font-size:13px;color:var(--dim);font-weight:600}
+  .info b{color:var(--txt);font-variant-numeric:tabular-nums}
+  .grid{display:grid;gap:8px}
+  .card{
+    width:100%;aspect-ratio:1;border-radius:11px;cursor:pointer;
+    background:linear-gradient(160deg,#3a4350,#2b343e);
+    border:1px solid var(--line);display:grid;place-items:center;
+    font-size:34px;transition:all .15s;position:relative;overflow:hidden;
+  }
+  .card:hover{border-color:#3d4a56}
+  .card .face{position:absolute;inset:0;display:grid;place-items:center;font-size:30px}
+  .card .back{background:linear-gradient(160deg,#3a4350,#2b343e);color:var(--dim);font-size:14px;font-weight:800;letter-spacing:2px}
+  .card .front{transform:rotateY(0deg);background:linear-gradient(160deg,#1f262e,#181d23);color:var(--gold)}
+  .card.flipped .back{display:none}
+  .card.matched .front{background:#1a2a1b;color:var(--ok);border:1px solid #3fbf6b55}
+  .card.matched{cursor:default}
+  .grid4{grid-template-columns:repeat(4,1fr);width:min(440px,92vw)}
+  .grid6{grid-template-columns:repeat(6,1fr);width:min(560px,96vw)}
+  .grid6 .card{font-size:24px}.grid6 .card .face{font-size:22px}
+  .result{font-size:18px;font-weight:800;color:var(--gold);min-height:24px}
+  .btn{padding:10px 18px;border-radius:10px;background:linear-gradient(180deg,#f0c45e,#d49a30);
+    color:#20180a;font-size:12.5px;font-weight:800;cursor:pointer;border:none}
+  .btn:active{transform:scale(.97)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="../index.html" style="cursor:pointer">
+    <div class="logo">X</div><div><div class="name"><b>Xeena</b> Games</div><div class="sub">Memory Match</div></div>
+  </a>
+  <div class="spacer"></div>
+  <div class="userchip"></div>
+</div>
+
+<main class="stage">
+  <div class="modes">
+    <button class="mode sel" data-size="4">Mudah (4×4)</button>
+    <button class="mode" data-size="6">Sulit (6×6)</button>
+    <button class="mode" data-theme="emoji">Tema: Emoji</button>
+    <button class="mode" data-theme="letter">Tema: Huruf</button>
+  </div>
+  <div class="info">
+    <div>Gerakan: <b id="moves">0</b></div>
+    <div>Pasangan: <b id="matched">0</b>/<b id="total">8</b></div>
+    <div>Waktu: <b id="time">00:00</b></div>
+  </div>
+  <div class="result" id="result">&nbsp;</div>
+  <div class="grid grid4" id="grid"></div>
+  <button class="btn" id="btnNew">Mulai Baru</button>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+'use strict';
+let size=4, theme='emoji';
+let cards=[], flipped=[], matched=0, moves=0, lock=false, startT=0, timerId=null;
+
+const THEMES={
+  emoji:['🎮','🎯','🎲','🎨','🎭','🃏','🎺','🎸','🎹','🎷','🥁','🎻','🎤','🎧','🎼','🎲','⭐','🌙','🔥','💧','🌈','☀️','❄️','⚡','🍀','🌟','💎','🔮','🎯','🧩','🚀','🎮','🎲','🎨','🎭'],
+  letter:['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','α','β','γ','δ','ε','ζ','η','θ','λ','μ']
+};
+
+const gridEl=document.getElementById('grid');
+const movesEl=document.getElementById('moves');
+const matchedEl=document.getElementById('matched');
+const totalEl=document.getElementById('total');
+const timeEl=document.getElementById('time');
+const resultEl=document.getElementById('result');
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function newGame(){
+  stopTimer();
+  matched=0; moves=0; flipped=[]; lock=false; startT=Date.now();
+  const total=size*size/2;
+  const pool=shuffle(THEMES[theme].slice()).slice(0,total);
+  cards=shuffle([...pool, ...pool]);
+  resultEl.innerHTML='&nbsp;';
+  totalEl.textContent=total;
+  movesEl.textContent='0';
+  matchedEl.textContent='0';
+  gridEl.className = size===4 ? 'grid grid4' : 'grid grid6';
+  gridEl.innerHTML='';
+  for(let i=0;i<cards.length;i++){
+    const c=document.createElement('div');
+    c.className='card';
+    c.innerHTML=`<div class="face back">?</div><div class="face front">${cards[i]}</div>`;
+    c.dataset.i=i;
+    c.onclick=()=>flip(i,c);
+    gridEl.appendChild(c);
+  }
+  startTimer();
+}
+
+function flip(i, el){
+  if(lock) return;
+  if(el.classList.contains('flipped')||el.classList.contains('matched')) return;
+  el.classList.add('flipped');
+  flipped.push({i, el, val:cards[i]});
+  if(flipped.length===2){
+    moves++; movesEl.textContent=moves;
+    if(flipped[0].val===flipped[1].val){
+      // match
+      setTimeout(()=>{
+        flipped[0].el.classList.add('matched');
+        flipped[1].el.classList.add('matched');
+        flipped=[];
+        matched++; matchedEl.textContent=matched;
+        if(matched===cards.length/2){
+          win();
+        }
+      }, 250);
+    }else{
+      lock=true;
+      setTimeout(()=>{
+        flipped[0].el.classList.remove('flipped');
+        flipped[1].el.classList.remove('flipped');
+        flipped=[]; lock=false;
+      }, 800);
+    }
+  }
+}
+
+function win(){
+  stopTimer();
+  const elapsed=Math.floor((Date.now()-startT)/1000);
+  const m=String(Math.floor(elapsed/60)).padStart(2,'0');
+  const s=String(elapsed%60).padStart(2,'0');
+  // skor: lebih sedikit moves & lebih cepat = lebih tinggi
+  const base = size===4?1000:2500;
+  const score = Math.max(100, base - moves*15 - elapsed*5);
+  resultEl.innerHTML=`Selesai! ${moves} gerakan · ${m}:${s} · Skor: <b>${score}</b>`;
+  // simpan hi-score
+  const hsKey='xeena.memory.hi.'+size;
+  const prev=+localStorage.getItem(hsKey)||0;
+  if(score>prev){ localStorage.setItem(hsKey, score); resultEl.innerHTML+=' · <b>NEW BEST!</b>'; }
+  if(XEENA.isLoggedIn()){
+    XEENA.submitScore('memory', score, {size, moves, time:elapsed}).catch(()=>{});
+  }
+}
+
+function startTimer(){
+  timerId=setInterval(()=>{
+    const e=Math.floor((Date.now()-startT)/1000);
+    timeEl.textContent=String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0');
+  },500);
+}
+function stopTimer(){ if(timerId){ clearInterval(timerId); timerId=null; } }
+
+document.querySelectorAll('.mode[data-size]').forEach(m=>m.addEventListener('click',()=>{
+  document.querySelectorAll('.mode[data-size]').forEach(x=>x.classList.remove('sel'));
+  m.classList.add('sel'); size=+m.dataset.size; newGame();
+}));
+document.querySelectorAll('.mode[data-theme]').forEach(m=>m.addEventListener('click',()=>{
+  document.querySelectorAll('.mode[data-theme]').forEach(x=>x.classList.remove('sel'));
+  m.classList.add('sel'); theme=m.dataset.theme; newGame();
+}));
+document.getElementById('btnNew').addEventListener('click', newGame);
+newGame();
+XEENA.renderUserChip();
+</script>
+</body>
+</html>

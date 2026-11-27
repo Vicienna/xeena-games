@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#101418">
+<meta name="description" content="Login Xeena Games — verifikasi email tanpa password.">
+<meta name="xeena-worker" content="">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%2314181d'/%3E%3Crect width='48' height='48' rx='10' fill='none' stroke='%2339424d'/%3E%3Ctext x='24' y='32' text-anchor='middle' font-size='20' font-weight='800' fill='%23e8b64c' font-family='system-ui'%3EX%3C/text%3E%3C/svg%3E">
+<title>Login — Xeena Games</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <a class="brand" href="index.html" style="cursor:pointer">
+    <div class="logo">X</div>
+    <div>
+      <div class="name"><b>Xeena</b> Games</div>
+      <div class="sub">Login / Daftar</div>
+    </div>
+  </a>
+</div>
+
+<div class="authwrap">
+  <div class="authbox">
+
+    <!-- STEP 1: input email -->
+    <div class="authstep active" id="step1">
+      <h1>Masuk ke Xeena</h1>
+      <p class="sub">Login tanpa password. Kami tidak akan mengirim email ke kamu — <b>kamu</b> yang kirim email verifikasi. Praktis &amp; gratis buat kami juga.</p>
+
+      <div class="field">
+        <label for="email">Alamat email kamu</label>
+        <input id="email" type="email" autocomplete="email" placeholder="kamu@contoh.com" inputmode="email" spellcheck="false">
+      </div>
+
+      <button class="btn-primary" id="btnGetCode">Buat Kode Verifikasi</button>
+
+      <a class="backhome" href="index.html">← Kembali ke beranda</a>
+    </div>
+
+    <!-- STEP 2: show code, instruct to send email -->
+    <div class="authstep" id="step2">
+      <h1>Kirim Email Verifikasi</h1>
+      <p class="sub">Kode unik dibuat di bawah. Kirim email dari <b id="stepEmail">—</b> ke alamat verifikasi, isi pesan <b>hanya</b> kodenya.</p>
+
+      <div class="codebox">
+        <div class="lbl">Kode kamu (6 digit)</div>
+        <div class="code" id="theCode">000000</div>
+        <div class="exp" id="expTxt">Kode berlaku 10 menit</div>
+      </div>
+
+      <div class="sendinstr">
+        <b>Cara verifikasi:</b><br>
+        Kirim email dari alamat yang kamu masukkan ke:<br>
+        <span class="mailaddr" id="verifyAddr">verify@xeena.my.id</span><br>
+        Isi pesan / body email: <b>hanya</b> 6 digit kode di atas (tanpa kata lain). Subject bebas.
+        <ol>
+          <li>Buka aplikasi email kamu (Gmail, Outlook, dll.)</li>
+          <li>Buat email baru, <b>dari</b> alamat yang kamu masukkan</li>
+          <li>Tujuan: <b>verify@xeena.my.id</b></li>
+          <li>Isi pesan: <b>kode 6 digit</b> di atas (tanpa tanda baca lain)</li>
+          <li>Kirim. Sistem otomatis verifikasi dalam ~5 detik.</li>
+        </ol>
+      </div>
+
+      <a class="mailtolink" id="mailtolink" href="#" target="_blank" rel="noopener">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Buka aplikasi email (mail client)
+      </a>
+
+      <div class="pollstatus" id="pollStatus">
+        <span class="dot"></span>
+        <span id="pollTxt">Menunggu email masuk…</span>
+      </div>
+
+      <button class="btn-primary" id="btnCancel" style="background:var(--panel2);color:var(--txt);margin-top:10px;box-shadow:none;border:1px solid var(--line)">Batalkan</button>
+    </div>
+
+    <!-- STEP 3: success -->
+    <div class="authstep" id="step3">
+      <h1 style="color:var(--ok)">Berhasil Masuk!</h1>
+      <p class="sub">Email <b id="okEmail">—</b> terverifikasi. Mengalihkan…</p>
+      <div style="text-align:center;font-size:48px;color:var(--ok);margin:18px 0">✓</div>
+    </div>
+
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+// ====== KONFIGURASI ======
+const VERIFY_ADDR = 'verify@xeena.my.id';
+const CODE_EXPIRY_MIN = 10;
+const POLL_INTERVAL = 2500; // ms
+
+const params = new URLSearchParams(location.search);
+const nextTarget = params.get('next') || 'index.html';
+
+let pollTimer = null;
+let currentEmail = '';
+let currentCode = '';
+
+// ====== STEP 1 → STEP 2 ======
+function genCode(){
+  // 6 digit, hindari leading 0 supaya gampang dibaca saat ditaruh di body email
+  let s='';
+  for(let i=0;i<6;i++) s += Math.floor(Math.random()*10);
+  return s;
+}
+
+async function startAuth(){
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    XEENA.toast('Email tidak valid','bad');
+    return;
+  }
+  currentEmail = email;
+  currentCode = genCode();
+
+  // tampilkan dulu supaya UI responsif
+  document.getElementById('stepEmail').textContent = email;
+  document.getElementById('theCode').textContent = currentCode;
+  document.getElementById('verifyAddr').textContent = VERIFY_ADDR;
+  document.getElementById('expTxt').textContent = `Kode berlaku ${CODE_EXPIRY_MIN} menit`;
+  setMailto();
+
+  // kirim ke worker untuk disimpan (worker akan pakai saat cek email masuk)
+  document.getElementById('btnGetCode').disabled = true;
+  document.getElementById('btnGetCode').textContent = 'Memproses…';
+  try{
+    const r = await XEENA.api('/api/request',{method:'POST',body:{email,code:currentCode}});
+    if(!r.ok){
+      XEENA.toast((r.data&&r.data.error)||'Worker belum siap — mode lokal saja','bad',3500);
+      // tetap lanjut (mode lokal tanpa worker, user bisa cek manual nanti)
+    }
+  }catch(e){
+    XEENA.toast('Worker belum terhubung — mode lokal saja. Lihat README deploy.','bad',4000);
+  }
+  document.getElementById('btnGetCode').disabled = false;
+  document.getElementById('btnGetCode').textContent = 'Buat Kode Verifikasi';
+
+  // pindah step 2
+  document.getElementById('step1').classList.remove('active');
+  document.getElementById('step2').classList.add('active');
+
+  // mulai poll
+  startPolling();
+}
+
+function setMailto(){
+  const link = document.getElementById('mailtolink');
+  // mailto membuka aplikasi email user, dengan To dan Body terisi.
+  // Subject biarkan kosong (atau default), To = verify, Body = kode.
+  const to = encodeURIComponent(VERIFY_ADDR);
+  const body = encodeURIComponent(currentCode);
+  const subject = encodeURIComponent('Xeena verify');
+  link.href = `mailto:${to}?subject=${subject}&body=${body}`;
+}
+
+// ====== POLLING ======
+function startPolling(){
+  stopPolling();
+  document.getElementById('pollTxt').textContent = 'Menunggu email masuk…';
+  let attempts = 0;
+  pollTimer = setInterval(async ()=>{
+    attempts++;
+    if(attempts > (CODE_EXPIRY_MIN*60*1000/POLL_INTERVAL)){
+      stopPolling();
+      document.getElementById('pollStatus').innerHTML = '<span style="color:var(--bad);font-weight:700">Kode kedaluwarsa. Silakan ulang.</span>';
+      return;
+    }
+    try{
+      const r = await XEENA.api('/api/status?email='+encodeURIComponent(currentEmail));
+      if(r.ok && r.data && r.data.verified){
+        // sukses
+        stopPolling();
+        if(r.data.token){
+          XEENA.saveSession(r.data.token, currentEmail);
+        }
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step3').classList.add('active');
+        document.getElementById('okEmail').textContent = currentEmail;
+        setTimeout(()=>{ location.href = nextTarget; }, 1300);
+      }
+    }catch(e){}
+  }, POLL_INTERVAL);
+}
+function stopPolling(){ if(pollTimer){ clearInterval(pollTimer); pollTimer=null; } }
+
+// ====== EVENTS ======
+document.getElementById('btnGetCode').addEventListener('click', startAuth);
+document.getElementById('email').addEventListener('keydown', e=>{ if(e.key==='Enter') startAuth(); });
+document.getElementById('btnCancel').addEventListener('click', ()=>{
+  stopPolling();
+  // beritahu worker untuk batal (opsional)
+  XEENA.api('/api/cancel',{method:'POST',body:{email:currentEmail}}).catch(()=>{});
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('step1').classList.add('active');
+});
+
+// kalau sudah login, langsung redirect
+if(XEENA.isLoggedIn()){
+  // tetap beri kesempatan logout dulu — tapi kalau ada ?next, redirect cepat
+  if(params.get('next')){
+    location.href = nextTarget;
+  }
+}
+
+// render chip (kalau ada) + fokus input
+XEENA.renderUserChip();
+setTimeout(()=>document.getElementById('email').focus(), 100);
+</script>
+</body>
+</html>

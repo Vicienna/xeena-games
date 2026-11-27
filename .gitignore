@@ -1,0 +1,15 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# Node / wrangler local
+worker/node_modules/
+worker/.wrangler/
+*.log
+
+# Jangan commit token / secret apapun
+.env
+*.secret

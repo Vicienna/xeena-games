@@ -1,0 +1,39 @@
+# ===== Xeena Games — Cloudflare Worker config =====
+# Deploy dengan: npx wrangler deploy
+# Atau: npm install -g wrangler && wrangler deploy
+
+name = "xeena-games-worker"
+main = "email-worker.js"
+compatibility_date = "2024-09-23"
+
+# Email Workers butuh compatibility_flags berikut (aktif sejak 2024)
+# Tidak wajib di-set eksplisit bila compatibility_date di atas cukup baru.
+
+# ===== KV Namespace binding =====
+# Buat dulu: wrangler kv:namespace create XEENA_KV
+# lalu isi id di bawah dari output perintah itu.
+[[kv_namespaces]]
+binding = "XEENA_KV"
+id = "GANTI_DENGAN_KV_ID_KAMU"      # <-- GANTI
+# preview_id = "GANTI_DENGAN_KV_ID_PREVIEW"   # opsional, untuk wrangler dev
+
+# ===== Secret (opsional) =====
+# Batasi domain pengirim yang diperbolehkan. Set "*" untuk izinkan semua.
+# Set:  wrangler secret put ALLOWED_FROM
+# lalu ketik:  *
+# atau:  @gmail.com,@outlook.com,@yahoo.com  (untuk batasi)
+# Default kalau tidak di-set: "*" (semua domain diizinkan).
+
+# ===== Custom domain untuk worker (opsional) =====
+# Akan diset lewat dashboard: Workers → worker ini → Triggers → Custom Domain
+# Saran: api.xeena.my.id  (jadi XEENA.WORKER_URL = https://api.xeena.my.id)
+#
+# [route]
+# pattern = "api.xeena.my.id/*"
+# custom_domain = true
+
+# ===== Email Worker =====
+# Tidak perlu konfigurasi di sini — aktifkan Email Routing di dashboard:
+# Website → xeena.my.id → Email → Email Routing → Enable
+# Lalu: Routes → Catch-all → Send to Worker → pilih "xeena-games-worker"
+# Atau buat route khusus: verify@xeena.my.id → Send to Worker → xeena-games-worker

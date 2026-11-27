@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#101418">
+<meta name="xeena-worker" content="">
+<title>Tetris — Xeena Games</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  .stage{padding:18px 12px;display:flex;flex-direction:column;align-items:center;gap:12px}
+  .info{display:flex;gap:18px;font-size:13px;color:var(--dim);font-weight:600;align-items:center;flex-wrap:wrap;justify-content:center}
+  .info b{color:var(--gold);font-size:15px;font-variant-numeric:tabular-nums}
+  .info .lbl{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:var(--dim);margin-right:5px}
+  .gamearea{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;justify-content:center}
+  canvas{display:block;background:#0a0e11;border:1px solid var(--line);border-radius:8px;touch-action:none}
+  .sidebar{display:flex;flex-direction:column;gap:10px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px}
+  .panel h3{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:8px;font-weight:800}
+  .btn{padding:8px 14px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);font-size:11.5px;font-weight:700;cursor:pointer;color:var(--txt)}
+  .btn:hover{border-color:var(--gold);color:var(--gold)}
+  .btn:active{transform:scale(.97)}
+  .btn.primary{background:linear-gradient(180deg,#f0c45e,#d49a30);color:#20180a;border:none}
+  .overlay{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:200}
+  .ovbox{width:min(340px,90vw);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;text-align:center}
+  .ovbox h2{font-size:22px;font-weight:800;margin-bottom:10px}
+  .ovbox p{color:var(--dim);font-size:13px;margin-bottom:18px}
+  @media(max-width:560px){ canvas.board{width:90vw !important;height:90vw*2 !important} }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="../index.html" style="cursor:pointer">
+    <div class="logo">X</div><div><div class="name"><b>Xeena</b> Games</div><div class="sub">Tetris</div></div>
+  </a>
+  <div class="spacer"></div>
+  <div class="userchip"></div>
+</div>
+
+<main class="stage">
+  <div class="info">
+    <div><span class="lbl">Skor</span><b id="score">0</b></div>
+    <div><span class="lbl">Level</span><b id="level">1</b></div>
+    <div><span class="lbl">Lines</span><b id="lines">0</b></div>
+    <div><span class="lbl">Best</span><b id="best">0</b></div>
+  </div>
+  <div class="gamearea">
+    <canvas id="board" class="board" width="240" height="480"></canvas>
+    <div class="sidebar">
+      <div class="panel"><h3>Next</h3><canvas id="next" width="120" height="80"></canvas></div>
+      <div class="panel"><h3>Hold</h3><canvas id="hold" width="120" height="80"></canvas></div>
+      <div class="panel" style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn primary" id="btnStart">Mulai</button>
+        <button class="btn" id="btnPause">Jeda</button>
+        <button class="btn" id="btnHold">Hold (C)</button>
+      </div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:var(--dim);text-align:center;letter-spacing:.4px;line-height:1.5;max-width:520px">
+    ← → geser · ↑ putar · ↓ soft drop · Spasi hard drop · C tahan piece · P jeda
+  </div>
+</main>
+
+<div class="overlay" id="overlay"><div class="ovbox">
+  <h2 id="ovTitle">Game Over</h2>
+  <p id="ovSub">Skor: 0</p>
+  <button class="btn primary" id="btnRetry" style="width:100%;padding:12px">Coba Lagi</button>
+</div></div>
+
+<script src="../assets/app.js"></script>
+<script>
+'use strict';
+const COLS=10, ROWS=20, CELL=24;
+const cv=document.getElementById('board');
+cv.width=COLS*CELL; cv.height=ROWS*CELL;
+const ctx=cv.getContext('2d');
+const nextCv=document.getElementById('next'); const nctx=nextCv.getContext('2d');
+const holdCv=document.getElementById('hold'); const hctx=holdCv.getContext('2d');
+
+const PIECES={
+  I:{shape:[[1,1,1,1]],color:'#1d6ee0'},
+  O:{shape:[[1,1],[1,1]],color:'#f7c31e'},
+  T:{shape:[[0,1,0],[1,1,1]],color:'#7d3bbf'},
+  S:{shape:[[0,1,1],[1,1,0]],color:'#1d9e4b'},
+  Z:{shape:[[1,1,0],[0,1,1]],color:'#e05252'},
+  J:{shape:[[1,0,0],[1,1,1]],color:'#3a7bd5'},
+  L:{shape:[[0,0,1],[1,1,1]],color:'#f07d18'}
+};
+const KEYS=Object.keys(PIECES);
+
+let board, current, next, hold, canHold, score, level, lines, dropT, lastT, alive, paused, gameOver;
+
+function newPiece(){
+  const k=KEYS[Math.floor(Math.random()*KEYS.length)];
+  const p=PIECES[k];
+  return {shape:p.shape, color:p.color, type:k, x:Math.floor((COLS-p.shape[0].length)/2), y:0};
+}
+
+function reset(){
+  board=Array(ROWS).fill().map(()=>Array(COLS).fill(null));
+  current=newPiece(); next=newPiece(); hold=null; canHold=true;
+  score=0; level=1; lines=0; alive=true; paused=false; gameOver=false;
+  dropT=0; lastT=performance.now();
+  document.getElementById('overlay').style.display='none';
+  updateUI();
+}
+
+function rotate(p){
+  const h=p.shape.length, w=p.shape[0].length;
+  const n=Array(w).fill().map(()=>Array(h).fill(0));
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++) n[x][h-1-y]=p.shape[y][x];
+  return Object.assign({}, p, {shape:n});
+}
+
+function valid(p, dx, dy, shape){
+  shape=shape||p.shape;
+  for(let y=0;y<shape.length;y++)for(let x=0;x<shape[y].length;x++){
+    if(!shape[y][x]) continue;
+    const nx=p.x+x+dx, ny=p.y+y+dy;
+    if(nx<0||nx>=COLS||ny>=ROWS) return false;
+    if(ny>=0 && board[ny][nx]) return false;
+  }
+  return true;
+}
+
+function lock(){
+  for(let y=0;y<current.shape.length;y++)for(let x=0;x<current.shape[y].length;x++){
+    if(current.shape[y][x]){
+      const ny=current.y+y, nx=current.x+x;
+      if(ny<0){ gameOver=true; die(); return; }
+      board[ny][nx]=current.color;
+    }
+  }
+  clearLines();
+  current=next; next=newPiece(); canHold=true;
+  if(!valid(current, 0, 0)){ gameOver=true; die(); }
+}
+
+function clearLines(){
+  let cleared=0;
+  for(let y=ROWS-1;y>=0;y--){
+    if(board[y].every(c=>c)){
+      board.splice(y,1);
+      board.unshift(Array(COLS).fill(null));
+      cleared++; y++;
+    }
+  }
+  if(cleared){
+    lines+=cleared;
+    const pts=[0,40,100,300,1200][cleared]*level;
+    score+=pts;
+    level=Math.floor(lines/10)+1;
+    updateUI();
+  }
+}
+
+function softDrop(){ if(valid(current,0,1)) current.y++; }
+function hardDrop(){ let d=0; while(valid(current,0,1)){ current.y++; d++; } score+=d*2; lock(); updateUI(); }
+function moveLeft(){ if(valid(current,-1,0)) current.x--; }
+function moveRight(){ if(valid(current,1,0)) current.x++; }
+function tryRotate(){ const r=rotate(current); if(valid(current,0,0,r.shape)) current.shape=r.shape;
+  else if(valid(current,1,0,r.shape)){ current.x++; current.shape=r.shape; }
+  else if(valid(current,-1,0,r.shape)){ current.x--; current.shape=r.shape; }
+}
+function doHold(){
+  if(!canHold) return;
+  if(hold){
+    const t=current.type;
+    current={shape:PIECES[hold].shape, color:PIECES[hold].color, type:hold, x:Math.floor((COLS-PIECES[hold].shape[0].length)/2), y:0};
+    hold=t;
+  }else{
+    hold=current.type;
+    current=next; next=newPiece();
+  }
+  canHold=false;
+  drawHold();
+}
+
+function die(){
+  alive=false;
+  const best=+localStorage.getItem('xeena.tetris.best')||0;
+  if(score>best){ localStorage.setItem('xeena.tetris.best', score); document.getElementById('best').textContent=score; }
+  document.getElementById('ovTitle').textContent='Game Over';
+  document.getElementById('ovSub').textContent='Skor: '+score+' · Level '+level;
+  document.getElementById('overlay').style.display='flex';
+  if(XEENA.isLoggedIn()){
+    XEENA.submitScore('tetris', score, {level, lines}).catch(()=>{});
+  }
+}
+
+function updateUI(){
+  document.getElementById('score').textContent=score;
+  document.getElementById('level').textContent=level;
+  document.getElementById('lines').textContent=lines;
+  document.getElementById('best').textContent=Math.max(+localStorage.getItem('xeena.tetris.best')||0, score);
+}
+
+function draw(){
+  ctx.fillStyle='#0a0e11';
+  ctx.fillRect(0,0,cv.width,cv.height);
+  // grid
+  ctx.strokeStyle='#141a1f';
+  for(let x=0;x<=COLS;x++){ ctx.beginPath();ctx.moveTo(x*CELL,0);ctx.lineTo(x*CELL,cv.height);ctx.stroke(); }
+  for(let y=0;y<=ROWS;y++){ ctx.beginPath();ctx.moveTo(0,y*CELL);ctx.lineTo(cv.width,y*CELL);ctx.stroke(); }
+  // board
+  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
+    if(board[y][x]) drawCell(ctx, x*CELL, y*CELL, CELL, board[y][x]);
+  }
+  // ghost
+  if(current && !gameOver){
+    let gy=current.y;
+    while(valid(current, 0, gy-current.y+1)) gy++;
+    for(let y=0;y<current.shape.length;y++)for(let x=0;x<current.shape[y].length;x++){
+      if(current.shape[y][x]){
+        ctx.fillStyle=current.color+'33';
+        ctx.fillRect((current.x+x)*CELL+1, (gy+y)*CELL+1, CELL-2, CELL-2);
+      }
+    }
+    // current
+    for(let y=0;y<current.shape.length;y++)for(let x=0;x<current.shape[y].length;x++){
+      if(current.shape[y][x]) drawCell(ctx, (current.x+x)*CELL, (current.y+y)*CELL, CELL, current.color);
+    }
+  }
+  drawNext(); drawHold();
+}
+
+function drawCell(c, x, y, s, color){
+  c.fillStyle=color;
+  c.fillRect(x+1, y+1, s-2, s-2);
+  c.fillStyle='rgba(255,255,255,.18)';
+  c.fillRect(x+1, y+1, s-2, 3);
+  c.fillStyle='rgba(0,0,0,.2)';
+  c.fillRect(x+1, y+s-4, s-2, 3);
+}
+
+function drawMini(c, p){
+  c.fillStyle='#0d1114'; c.fillRect(0,0,c.canvas.width, c.canvas.height);
+  if(!p) return;
+  const sh=PIECES[p].shape, col=PIECES[p].color;
+  const cs=14;
+  const w=sh[0].length*cs, h=sh.length*cs;
+  const ox=(c.canvas.width-w)/2, oy=(c.canvas.height-h)/2;
+  for(let y=0;y<sh.length;y++)for(let x=0;x<sh[y].length;x++){
+    if(sh[y][x]) drawCell(c, ox+x*cs, oy+y*cs, cs, col);
+  }
+}
+function drawNext(){ drawMini(nctx, next?next.type:null); }
+function drawHold(){ drawMini(hctx, hold); }
+
+let raf=null;
+function loop(t){
+  raf=requestAnimationFrame(loop);
+  if(!alive||paused||gameOver){ draw(); return; }
+  const dt=t-lastT; lastT=t; dropT+=dt;
+  const speed=Math.max(60, 800-(level-1)*70);
+  if(dropT>speed){ dropT=0; if(valid(current,0,1)) current.y++; else lock(); }
+  draw();
+}
+
+document.addEventListener('keydown', e=>{
+  if(!alive||gameOver) return;
+  if(paused && e.key!=='p' && e.code!=='KeyP') return;
+  if(e.key==='ArrowLeft'){ moveLeft(); e.preventDefault(); }
+  else if(e.key==='ArrowRight'){ moveRight(); e.preventDefault(); }
+  else if(e.key==='ArrowDown'){ softDrop(); score+=1; updateUI(); e.preventDefault(); }
+  else if(e.key==='ArrowUp'){ tryRotate(); e.preventDefault(); }
+  else if(e.key===' '){ hardDrop(); e.preventDefault(); }
+  else if(e.key==='c'||e.key==='C'){ doHold(); e.preventDefault(); }
+  else if(e.key==='p'||e.key==='P'){ paused=!paused; }
+});
+// touch controls
+let tx=0, ty=0, tTime=0;
+cv.addEventListener('touchstart', e=>{
+  tx=e.touches[0].clientX; ty=e.touches[0].clientY; tTime=Date.now();
+});
+cv.addEventListener('touchend', e=>{
+  if(!alive||gameOver||paused) return;
+  const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+  const dt=Date.now()-tTime;
+  if(Math.abs(dx)<15 && Math.abs(dy)<15 && dt<200){ tryRotate(); return; }
+  if(Math.abs(dx)>Math.abs(dy)) moveLeft? (dx<0?moveLeft():moveRight()) : null;
+  else if(dy>30) hardDrop();
+  else if(dy>10) softDrop();
+  else if(dx<-30) moveLeft();
+  else if(dx>30) moveRight();
+});
+
+document.getElementById('btnStart').addEventListener('click', ()=>{ reset(); if(!raf) raf=requestAnimationFrame(loop); });
+document.getElementById('btnRetry').addEventListener('click', ()=>{ reset(); if(!raf) raf=requestAnimationFrame(loop); });
+document.getElementById('btnPause').addEventListener('click', ()=>{ paused=!paused; });
+document.getElementById('btnHold').addEventListener('click', doHold);
+
+document.getElementById('best').textContent=localStorage.getItem('xeena.tetris.best')||0;
+reset();
+draw();
+if(!raf) raf=requestAnimationFrame(loop);
+XEENA.renderUserChip();
+</script>
+</body>
+</html>

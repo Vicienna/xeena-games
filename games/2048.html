@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#101418">
+<meta name="xeena-worker" content="">
+<title>2048 — Xeena Games</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  .stage{padding:20px 16px;display:flex;flex-direction:column;align-items:center;gap:14px}
+  .info{display:flex;gap:18px;font-size:14px;color:var(--dim);font-weight:600}
+  .info b{color:var(--gold);font-size:18px;font-variant-numeric:tabular-nums}
+  .info .lbl{display:block;font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--dim);text-align:center;margin-bottom:2px}
+  .info .v{font-size:20px;font-weight:800;color:var(--txt)}
+  .board{position:relative;width:min(440px,92vw);aspect-ratio:1;background:#2b343e;border-radius:11px;padding:10px;touch-action:none}
+  .grid-bg{position:absolute;inset:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .gb-cell{background:#3a4350;border-radius:8px}
+  .tile-layer{position:absolute;inset:10px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:10px}
+  .tile{
+    border-radius:8px;display:grid;place-items:center;font-weight:800;
+    transition:transform .12s,opacity .15s;
+    font-family:var(--mono);
+  }
+  .t2{background:#e8b64c;color:#20180a}.t4{background:#f07d18;color:#fff}
+  .t8{background:#e05252;color:#fff}.t16{background:#7d3bbf;color:#fff}
+  .t32{background:#1d6ee0;color:#fff}.t64{background:#1d9e4b;color:#fff}
+  .t128{background:#f7c31e;color:#20180a;font-size:0.85em}.t256{background:#e05252;color:#fff;font-size:0.85em}
+  .t512{background:#7d3bbf;color:#fff;font-size:0.85em}.t1024{background:#1d6ee0;color:#fff;font-size:0.7em}
+  .t2048{background:#3fbf6b;color:#0a2818;font-size:0.7em;box-shadow:0 0 18px #3fbf6b88}
+  .t-big{background:#3a4350;color:#fff;font-size:0.55em}
+  .overlay{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:200}
+  .ovbox{width:min(360px,90vw);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;text-align:center}
+  .ovbox h2{font-size:22px;font-weight:800;margin-bottom:10px}
+  .ovbox p{color:var(--dim);font-size:13px;margin-bottom:18px}
+  .btn{padding:10px 18px;border-radius:10px;background:linear-gradient(180deg,#f0c45e,#d49a30);color:#20180a;font-size:12.5px;font-weight:800;cursor:pointer;border:none}
+  .btn:active{transform:scale(.97)}
+  .btnrow{display:flex;gap:9px;justify-content:center}
+  .btn.sec{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+  .hint{font-size:11px;color:var(--dim);text-align:center;letter-spacing:.4px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="../index.html" style="cursor:pointer">
+    <div class="logo">X</div><div><div class="name"><b>Xeena</b> Games</div><div class="sub">2048</div></div>
+  </a>
+  <div class="spacer"></div>
+  <div class="userchip"></div>
+</div>
+
+<main class="stage">
+  <div class="info">
+    <div><div class="lbl">Skor</div><div class="v" id="score">0</div></div>
+    <div><div class="lbl">Best</div><div class="v" id="best">0</div></div>
+    <div><div class="lbl">Tile Maks</div><div class="v" id="maxTile">2</div></div>
+  </div>
+  <div class="board" id="board">
+    <div class="grid-bg" id="gb"></div>
+    <div class="tile-layer" id="tl"></div>
+  </div>
+  <div class="hint">Geser / panah ← ↑ → ↓ untuk main</div>
+  <div class="btnrow">
+    <button class="btn" id="btnNew">Mulai Baru</button>
+    <button class="btn sec" id="btnUndo">Batal (×3)</button>
+  </div>
+</main>
+
+<div class="overlay" id="overlay"><div class="ovbox">
+  <h2 id="ovTitle">Game Over</h2>
+  <p id="ovSub">Skor: 0</p>
+  <button class="btn" id="btnRetry">Coba Lagi</button>
+</div></div>
+
+<script src="../assets/app.js"></script>
+<script>
+'use strict';
+let grid, score, best, undosLeft, prevGrid, prevScore, won=false, over=false;
+
+const gbEl=document.getElementById('gb');
+const tlEl=document.getElementById('tl');
+const scoreEl=document.getElementById('score'), bestEl=document.getElementById('best'),
+      maxTileEl=document.getElementById('maxTile');
+
+// build background grid
+for(let i=0;i<16;i++){ const c=document.createElement('div'); c.className='gb-cell'; gbEl.appendChild(c); }
+
+function reset(){
+  grid=Array(16).fill(0); score=0; won=false; over=false; undosLeft=3;
+  prevGrid=null; prevScore=0;
+  document.getElementById('overlay').style.display='none';
+  spawn(); spawn();
+  render();
+}
+
+function spawn(){
+  const empty=grid.map((v,i)=>v?null:i).filter(x=>x!==null);
+  if(empty.length===0) return;
+  const i=empty[Math.floor(Math.random()*empty.length)];
+  grid[i] = Math.random()<0.9 ? 2 : 4;
+}
+
+function render(){
+  tlEl.innerHTML='';
+  let max=0;
+  for(let i=0;i<16;i++){
+    const v=grid[i];
+    if(v){ max=Math.max(max,v);
+      const t=document.createElement('div');
+      t.className='tile '+(v<=2048?('t'+v):'t-big');
+      t.textContent=v;
+      tlEl.appendChild(t);
+    }else{
+      tlEl.appendChild(document.createElement('div'));
+    }
+  }
+  scoreEl.textContent=score;
+  maxTileEl.textContent=max;
+}
+
+function saveSnapshot(){
+  prevGrid=grid.slice();
+  prevScore=score;
+}
+
+function undo(){
+  if(!prevGrid||undosLeft<=0) return;
+  grid=prevGrid.slice(); score=prevScore; undosLeft--;
+  over=false; document.getElementById('overlay').style.display='none';
+  render();
+}
+
+function slide(row){
+  // remove zeros
+  let r=row.filter(x=>x);
+  for(let i=0;i<r.length-1;i++){
+    if(r[i]===r[i+1]){ r[i]*=2; score+=r[i]; r.splice(i+1,1); }
+  }
+  while(r.length<4) r.push(0);
+  return r;
+}
+
+function moveLeft(){
+  saveSnapshot();
+  let moved=false;
+  for(let r=0;r<4;r++){
+    const row=[grid[r*4],grid[r*4+1],grid[r*4+2],grid[r*4+3]];
+    const nr=slide(row);
+    for(let c=0;c<4;c++){ if(grid[r*4+c]!==nr[c]){ moved=true; grid[r*4+c]=nr[c]; } }
+  }
+  return moved;
+}
+function reverseRows(){ grid=rotate(grid,4,4); }
+function rotate(g,w,h){
+  const n=Array(w*h);
+  for(let r=0;r<h;r++)for(let c=0;c<w;c++) n[c*h+r]=g[r*w+c];
+  return n;
+}
+function moveRight(){
+  saveSnapshot();
+  let moved=false;
+  for(let r=0;r<4;r++){
+    const row=[grid[r*4+3],grid[r*4+2],grid[r*4+1],grid[r*4]];
+    const nr=slide(row);
+    for(let c=0;c<4;c++){ if(grid[r*4+3-c]!==nr[c]){ moved=true; grid[r*4+3-c]=nr[c]; } }
+  }
+  return moved;
+}
+function moveUp(){
+  saveSnapshot();
+  let moved=false;
+  for(let c=0;c<4;c++){
+    const col=[grid[c],grid[c+4],grid[c+8],grid[c+12]];
+    const nc=slide(col);
+    for(let r=0;r<4;r++){ if(grid[c+r*4]!==nc[r]){ moved=true; grid[c+r*4]=nc[r]; } }
+  }
+  return moved;
+}
+function moveDown(){
+  saveSnapshot();
+  let moved=false;
+  for(let c=0;c<4;c++){
+    const col=[grid[c+12],grid[c+8],grid[c+4],grid[c]];
+    const nc=slide(col);
+    for(let r=0;r<4;r++){ if(grid[c+(3-r)*4]!==nc[r]){ moved=true; grid[c+(3-r)*4]=nc[r]; } }
+  }
+  return moved;
+}
+
+function hasMoves(){
+  for(let i=0;i<16;i++){
+    if(grid[i]===0) return true;
+    if(i%4<3 && grid[i]===grid[i+1]) return true;
+    if(i<12 && grid[i]===grid[i+4]) return true;
+  }
+  return false;
+}
+
+function move(dir){
+  if(over) return;
+  let moved=false;
+  if(dir==='left') moved=moveLeft();
+  else if(dir==='right') moved=moveRight();
+  else if(dir==='up') moved=moveUp();
+  else if(dir==='down') moved=moveDown();
+  if(moved){
+    // jika ternyata tidak benar-benar berubah (semua sudah slide tanpa effect) reset snapshot
+    spawn();
+    render();
+    // cek menang
+    if(!won && grid.some(v=>v>=2048)){
+      won=true;
+      document.getElementById('ovTitle').textContent='You Win!';
+      document.getElementById('ovSub').textContent='Skor: '+score+' — Lanjut untuk skor lebih tinggi';
+      document.getElementById('overlay').style.display='flex';
+      submitScore();
+    }
+    if(!hasMoves()){
+      over=true;
+      document.getElementById('ovTitle').textContent='Game Over';
+      document.getElementById('ovSub').textContent='Skor: '+score;
+      document.getElementById('overlay').style.display='flex';
+      submitScore();
+    }
+  }else{
+    // restore snapshot karena tidak ada gerakan
+    prevGrid=null;
+  }
+  bestEl.textContent=Math.max(best, score);
+  if(score>best){ best=score; localStorage.setItem('xeena.2048.best', best); }
+}
+
+function submitScore(){
+  if(XEENA.isLoggedIn()){
+    XEENA.submitScore('2048', score, {maxTile: Math.max(...grid)}).catch(()=>{});
+  }
+}
+
+document.addEventListener('keydown', e=>{
+  if(['ArrowLeft','a','A'].includes(e.key)){ move('left'); e.preventDefault(); }
+  else if(['ArrowRight','d','D'].includes(e.key)){ move('right'); e.preventDefault(); }
+  else if(['ArrowUp','w','W'].includes(e.key)){ move('up'); e.preventDefault(); }
+  else if(['ArrowDown','s','S'].includes(e.key)){ move('down'); e.preventDefault(); }
+});
+// swipe
+let tx=0,ty=0;
+const boardEl=document.getElementById('board');
+boardEl.addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; });
+boardEl.addEventListener('touchend', e=>{
+  const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+  if(Math.max(Math.abs(dx),Math.abs(dy))<20) return;
+  if(Math.abs(dx)>Math.abs(dy)) move(dx>0?'right':'left');
+  else move(dy>0?'down':'up');
+});
+
+document.getElementById('btnNew').addEventListener('click', reset);
+document.getElementById('btnUndo').addEventListener('click', undo);
+document.getElementById('btnRetry').addEventListener('click', reset);
+
+best=+localStorage.getItem('xeena.2048.best')||0;
+bestEl.textContent=best;
+reset();
+XEENA.renderUserChip();
+</script>
+</body>
+</html>
