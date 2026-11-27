@@ -2,307 +2,167 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#101418">
-<meta name="description" content="Xeena Games — kumpulan game browser gratis. 8-Ball Pool, Tic-Tac-Toe, Memory, Snake, 2048, Minesweeper, Flappy, Tetris. Tanpa iklan, tanpa biaya.">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#EFEBE0">
+<meta name="description" content="Xeena Games — arcade browser gratis. 8-Ball Pool, Tic-Tac-Toe, Memory, Snake, 2048, Minesweeper, Flappy, Tetris. Tanpa iklan, tanpa biaya, tanpa password.">
 <meta name="xeena-worker" content="">
-<meta property="og:title" content="Xeena Games — Koleksi Game Browser">
-<meta property="og:description" content="8 game gratis, langsung main, login email.">
+<meta property="og:title" content="XEENA GAMES — Arcade Browser Gratis">
+<meta property="og:description" content="Delapan game, nol iklan, nol biaya. Login pakai email — kamu yang kirim emailnya.">
 <meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%2314181d'/%3E%3Crect width='48' height='48' rx='10' fill='none' stroke='%2339424d'/%3E%3Ctext x='24' y='32' text-anchor='middle' font-size='20' font-weight='800' fill='%23e8b64c' font-family='system-ui'%3EX%3C/text%3E%3C/svg%3E">
-<title>Xeena Games — Koleksi Game Browser</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' fill='%23141310'/%3E%3Ctext x='24' y='35' text-anchor='middle' font-size='30' font-weight='800' fill='%23C8FF2E' font-family='Arial Black,sans-serif'%3EX%3C/text%3E%3C/svg%3E">
+<title>XEENA GAMES — Arcade Browser Gratis</title>
 <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
 
-<div class="topbar">
-  <div class="brand">
-    <div class="logo">X</div>
-    <div>
-      <div class="name"><b>Xeena</b> Games</div>
-      <div class="sub">No ads · No paywall · Just play</div>
-    </div>
-  </div>
+<header class="topbar">
+  <a class="brand" href="index.html">
+    <span class="logo">X</span>
+    <span>
+      <span class="name"><b>XEENA</b> GAMES</span>
+      <span class="sub">Paper Arcade</span>
+    </span>
+  </a>
+  <span class="brand-meta">XEENA.MY.ID — BROWSER ARCADE</span>
   <div class="spacer"></div>
   <div class="userchip" title="Status login"></div>
-</div>
+</header>
 
-<section class="hero">
-  <h1>Game gratis, <b>langsung main.</b></h1>
-  <p>8 game buatan tangan untuk browser. Tanpa iklan, tanpa download, tanpa biaya. Login pakai email untuk simpan skor &amp; main online.</p>
-  <div class="stats">
-    <div><b id="stGames">8</b><span>Game</span></div>
-    <div><b id="stPlays">—</b><span>Total main</span></div>
-    <div><b id="stUsers">—</b><span>Pemain</span></div>
-  </div>
-</section>
+<div class="ticker" aria-hidden="true"><div class="ticker-track" id="tickerTrack"></div></div>
 
 <main class="wrap">
 
-  <div class="section-head">
-    <h2>Semua Game</h2>
-    <div class="cnt" id="cntGames">8 game</div>
-  </div>
+  <section class="hero">
+    <span class="reg tl" aria-hidden="true">+</span>
+    <span class="reg br" aria-hidden="true">+</span>
+    <div class="hero-kicker">
+      <span>Arcade browser</span>
+      <span class="no">No.01</span>
+      <span>Edisi 2026</span>
+    </div>
+    <h1 class="hero-title">XEENA<span class="hollow">GAMES<b class="ast">*</b></span></h1>
+    <p class="hero-sub">
+      Delapan game yang diketik satu-satu — tanpa framework, tanpa iklan, tanpa paywall.
+      Login cukup pakai email (tanpa password — kamu yang kirim emailnya), skor tersimpan online,
+      semuanya jalan gratis di <b>xeena.my.id</b>.
+    </p>
+    <div class="hero-coin"><span class="blink">▮</span> INSERT COIN — 0 KREDIT DIPERLUKAN</div>
+    <aside class="stamp">100% GRATIS<small>TANPA IKLAN · TANPA BIAYA</small></aside>
 
-  <div class="grid" id="grid"></div>
+    <dl class="stats">
+      <div><dt>Game</dt><dd>08</dd></div>
+      <div><dt>Pemain</dt><dd id="stUsers">—</dd></div>
+      <div><dt>Total main</dt><dd id="stPlays">—</dd></div>
+      <div><dt>Biaya</dt><dd>RP 0</dd></div>
+    </dl>
+  </section>
+
+  <section class="index" id="index">
+    <div class="index-head">
+      <span>Indeks Game</span>
+      <span id="cntEntries">— ENTRIES</span>
+    </div>
+    <ol class="index-list" id="indexList"></ol>
+  </section>
 
 </main>
 
-<footer class="foot">
-  <div class="ln">
-    <a href="index.html">Beranda</a>
-    <a href="login.html">Login / Daftar</a>
-    <a href="https://github.com/" target="_blank" rel="noopener">Source</a>
-    <a href="#about">Tentang</a>
+<footer class="colophon" id="about">
+  <div class="col-in">
+    <div>
+      <h3>Tentang</h3>
+      <p>Xeena Games adalah arcade browser statis — delapan game vanilla yang tidak minta apa-apa:
+      tanpa iklan, tanpa pelacak, tanpa password. Halaman ini di-host gratis di Cloudflare Pages,
+      login diproses Cloudflare Worker, kode terbuka di GitHub.</p>
+    </div>
+    <div class="col-nav">
+      <h3>Navigasi</h3>
+      <a href="#index">Indeks game</a>
+      <a href="login.html">Masuk / daftar</a>
+      <a href="games/8ball.html">8-Ball Pool</a>
+      <a href="games/2048.html">2048</a>
+    </div>
+    <div>
+      <h3>Kontak</h3>
+      <span class="col-mail">verify@xeena.my.id</span>
+      <p style="margin-top:8px">Login tanpa password — kamu yang kirim email verifikasinya,
+      worker kami yang mengecek. GitHub: repo <b>xeena-games</b>.</p>
+    </div>
   </div>
-  <div id="about">
-    Dibuat untuk <b>xeena.my.id</b> · Hosted gratis di Cloudflare Pages + Workers · Source di GitHub<br>
-    Login tanpa kirim email keluar — kamu yang kirim email verifikasi ke <a>verify@xeena.my.id</a>.
+  <div class="col-bottom">
+    <span>© 2026 XEENA.MY.ID</span>
+    <span class="red">V2.1 — PAPER ARCADE EDITION</span>
+    <span>DICETAK DI CLOUDFLARE</span>
   </div>
-  <div style="margin-top:8px;color:#5a6670;font-size:11px">© 2026 Xeena Games</div>
 </footer>
 
 <script src="assets/app.js"></script>
 <script>
-const GAMES = [
-  {id:'8ball',   name:'8-Ball Pool',  tag:'FEATURED', new:false,
-    desc:'Fisika realistis, bot 3 level, multiplayer P2P, spin &amp; english.',
-    meta:['Pool','Multiplayer','AI'], file:'games/8ball.html'},
-  {id:'tictactoe', name:'Tic-Tac-Toe', tag:'Klasik', new:false,
-    desc:'Lawan AI minimax (unbeatable) atau 2 pemain. Plus mode 5x5.',
-    meta:['Strategy','1-2P'], file:'games/tictactoe.html'},
-  {id:'memory',  name:'Memory Match', tag:'Kartu', new:false,
-    desc:'Pasangkan kartu. Tingkat kesulitan &amp; tema bisa diubah.',
-    meta:['Memory','Solo'], file:'games/memory.html'},
-  {id:'snake',   name:'Snake',        tag:'Klasik', new:false,
-    desc:'Ular klasik dengan kontrol smooth &amp; mode dinding on/off.',
-    meta:['Arcade','Hi-score'], file:'games/snake.html'},
-  {id:'2048',    name:'2048',         tag:'Populer', new:false,
-    desc:'Gabung angka sampai 2048 (atau lebih). Swipe / panah.',
-    meta:['Puzzle','Hi-score'], file:'games/2048.html'},
-  {id:'mines',   name:'Minesweeper',  tag:'Klasik', new:false,
-    desc:'Tandai ranjau, buka kotak aman. Tingkat: pemula / menengah / ahli.',
-    meta:['Puzzle','Solo'], file:'games/mines.html'},
-  {id:'flappy',  name:'Flappy',       tag:'Arcade', new:true,
-    desc:'Tap untuk terbang, hindari pipa. Hi-score disimpan per akun.',
-    meta:['Arcade','Hi-score'], file:'games/flappy.html'},
-  {id:'tetris',  name:'Tetris',       tag:'Klasik', new:true,
-    desc:'7 tetromino, hold &amp; next preview, ghost piece, speed naik.',
-    meta:['Puzzle','Hi-score'], file:'games/tetris.html'},
+'use strict';
+/* ---------- ticker ---------- */
+const TICKS=['XEENA GAMES','TANPA IKLAN','TANPA BIAYA','LOGIN EMAIL','SKOR ONLINE',
+  'P2P MULTIPLAYER','8 GAME','VANILLA JS','XEENA.MY.ID'];
+(function buildTicker(){
+  const half=TICKS.map(t=>`<span>${t}</span><i>///</i>`).join('');
+  document.getElementById('tickerTrack').innerHTML=half+half;
+})();
+
+/* ---------- indeks game ---------- */
+const GAMES=[
+  {no:'01',name:'8-Ball Pool',file:'games/8ball.html',
+   desc:'Fisika slide-roll nyata, english & spin, bot tiga level sampai bank-shot, multiplayer P2P pakai room code.',
+   tags:['Andalan','Pool','P2P','AI']},
+  {no:'02',name:'Tic-Tac-Toe',file:'games/tictactoe.html',
+   desc:'Minimax yang nyaris tak terkalahkan di mode Pro, plus papan 5×5 connect-empat untuk yang kurang tantangan.',
+   tags:['Strategy','AI','1-2P']},
+  {no:'03',name:'Memory Match',file:'games/memory.html',
+   desc:'Balik kartu, pasangkan pasangan, kejar waktu. Dua ukuran papan, dua tema, skor dihitung dari gerakan.',
+   tags:['Memory','Solo']},
+  {no:'04',name:'Snake',file:'games/snake.html',
+   desc:'Klasik yang tidak pernah mati. Dinding opsional, ular makin cepat seiring makin panjang.',
+   tags:['Arcade','Solo']},
+  {no:'05',name:'2048',file:'games/2048.html',
+   desc:'Gabung dua jadi empat, empat jadi delapan — sampai tangan gemetar. Ada undo tiga kali untuk yang panik.',
+   tags:['Puzzle','Solo']},
+  {no:'06',name:'Minesweeper',file:'games/mines.html',
+   desc:'Buka kotak, tandai ranjau, jangan meledak. Tiga ukuran papan dari santai sampai ahli.',
+   tags:['Puzzle','Solo']},
+  {no:'07',name:'Flappy',file:'games/flappy.html',
+   desc:'Satu tap untuk terbang, seribu pipa untuk dihindari. Sesederhana itu, sefrustrasi itu.',
+   tags:['Arcade','Rage']},
+  {no:'08',name:'Tetris',file:'games/tetris.html',
+   desc:'Tujuh tetromino, hold, ghost piece, next preview, dan kecepatan yang makin jahat tiap level.',
+   tags:['Puzzle','Solo']},
 ];
+(function renderIndex(){
+  document.getElementById('indexList').innerHTML=GAMES.map(g=>`
+    <li>
+      <a class="ix-row" href="${g.file}">
+        <span class="ix-num">${g.no}</span>
+        <span class="ix-body">
+          <span class="ix-title">${g.name}</span>
+          <span class="ix-desc">${g.desc}</span>
+        </span>
+        <span class="ix-tags">${g.tags.map(t=>`<i>${t}</i>`).join('')}</span>
+        <span class="ix-go">→</span>
+      </a>
+    </li>`).join('');
+  document.getElementById('cntEntries').textContent=
+    String(GAMES.length).padStart(2,'0')+' ENTRIES';
+})();
 
-// Thumbnail SVG generator per game (inline, no asset files)
-function thumb(id){
-  const W=320, H=200;
-  const grad = (c1,c2)=>`<defs><linearGradient id="g_${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>`;
-  const frames = {
-    '8ball':`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-      ${grad('#1a2630','#0a0e11')}
-      <rect width="${W}" height="${H}" fill="url(#g_8ball)"/>
-      <rect x="40" y="20" width="240" height="160" rx="14" fill="#43b46a"/>
-      <rect x="40" y="20" width="240" height="160" rx="14" fill="none" stroke="#1d6b36" stroke-width="3"/>
-      <rect x="40" y="20" width="240" height="160" rx="14" fill="none" stroke="rgba(255,255,255,.08)"/>
-      <circle cx="60" cy="40" r="10" fill="#000"/><circle cx="160" cy="32" r="9" fill="#000"/>
-      <circle cx="260" cy="40" r="10" fill="#000"/><circle cx="60" cy="160" r="10" fill="#000"/>
-      <circle cx="160" cy="168" r="9" fill="#000"/><circle cx="260" cy="160" r="10" fill="#000"/>
-      <g><circle cx="120" cy="100" r="14" fill="#151515"/>
-        <circle cx="120" cy="100" r="5" fill="#e8e6e1"/>
-        <text x="120" y="103" text-anchor="middle" font-size="6" font-weight="800" fill="#151515" font-family="system-ui">8</text>
-      </g>
-      <g transform="rotate(-18 95 80)"><rect x="80" y="78" width="40" height="3" rx="1.5" fill="#c8965e"/></g>
-      <circle cx="80" cy="80" r="14" fill="#f7c31e"/>
-      <circle cx="75" cy="76" r="4" fill="rgba(255,255,255,.4)"/>
-    </svg>`,
-    'tictactoe':`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-      ${grad('#1c2230','#0a0e13')}
-      <rect width="${W}" height="${H}" fill="url(#g_tictactoe)"/>
-      <g stroke="#39424d" stroke-width="3" stroke-linecap="round">
-        <line x1="140" y1="50" x2="140" y2="170"/>
-        <line x1="200" y1="50" x2="200" y2="170"/>
-        <line x1="85"  y1="80" x2="255" y2="80"/>
-        <line x1="85"  y1="140" x2="255" y2="140"/>
-      </g>
-      <g stroke="#e8b64c" stroke-width="4" stroke-linecap="round" fill="none">
-        <path d="M100 95 L130 125 M130 95 L100 125"/>
-        <path d="M225 150 L255 180 M255 150 L225 180"/>
-      </g>
-      <g stroke="#3fbf6b" stroke-width="4" fill="none">
-        <circle cx="170" cy="110" r="15"/>
-      </g>
-    </svg>`,
-    'memory':`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-      ${grad('#1f1820','#0a0808')}
-      <rect width="${W}" height="${H}" fill="url(#g_memory)"/>
-      <g transform="translate(40 24)">
-        <rect width="50" height="70" rx="7" fill="#e8b64c"/>
-        <rect width="50" height="70" rx="7" fill="none" stroke="#9a7a1f" stroke-width="1.5"/>
-        <text x="25" y="46" text-anchor="middle" font-size="34" font-weight="800" fill="#20180a" font-family="system-ui">A</text>
-      </g>
-      <g transform="translate(102 24)"><rect width="50" height="70" rx="7" fill="#3a4350" stroke="#5a6670" stroke-width="1.5"/><circle cx="25" cy="35" r="6" fill="#5a6670"/></g>
-      <g transform="translate(164 24)"><rect width="50" height="70" rx="7" fill="#e8b64c" stroke="#9a7a1f" stroke-width="1.5"/><text x="25" y="46" text-anchor="middle" font-size="34" font-weight="800" fill="#20180a" font-family="system-ui">A</text></g>
-      <g transform="translate(226 24)"><rect width="50" height="70" rx="7" fill="#3a4350" stroke="#5a6670" stroke-width="1.5"/><circle cx="25" cy="35" r="6" fill="#5a6670"/></g>
-      <g transform="translate(40 104)"><rect width="50" height="70" rx="7" fill="#3a4350" stroke="#5a6670" stroke-width="1.5"/><circle cx="25" cy="35" r="6" fill="#5a6670"/></g>
-      <g transform="translate(102 104)"><rect width="50" height="70" rx="7" fill="#3fbf6b" stroke="#1d6b36" stroke-width="1.5"/><text x="25" y="46" text-anchor="middle" font-size="34" font-weight="800" fill="#0a2818" font-family="system-ui">B</text></g>
-      <g transform="translate(164 104)"><rect width="50" height="70" rx="7" fill="#3a4350" stroke="#5a6670" stroke-width="1.5"/><circle cx="25" cy="35" r="6" fill="#5a6670"/></g>
-      <g transform="translate(226 104)"><rect width="50" height="70" rx="7" fill="#3fbf6b" stroke="#1d6b36" stroke-width="1.5"/><text x="25" y="46" text-anchor="middle" font-size="34" font-weight="800" fill="#0a2818" font-family="system-ui">B</text></g>
-    </svg>`,
-    'snake':`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-      ${grad('#0d1a12','#050908')}
-      <rect width="${W}" height="${H}" fill="url(#g_snake)"/>
-      <g fill="#1d6b36"><rect x="40" y="40" width="14" height="14" rx="2"/><rect x="54" y="40" width="14" height="14" rx="2"/><rect x="68" y="40" width="14" height="14" rx="2"/><rect x="68" y="54" width="14" height="14" rx="2"/><rect x="68" y="68" width="14" height="14" rx="2"/><rect x="82" y="68" width="14" height="14" rx="2"/><rect x="96" y="68" width="14" height="14" rx="2"/><rect x="110" y="68" width="14" height="14" rx="2"/><rect x="124" y="68" width="14" height="14" rx="2"/><rect x="124" y="82" width="14" height="14" rx="2"/><rect x="124" y="96" width="14" height="14" rx="2"/><rect x="124" y="110" width="14" height="14" rx="2"/></g>
-      <g fill="#43b46a"><rect x="40" y="40" width="14" height="14" rx="2"/><rect x="124" y="110" width="14" height="14" rx="2"/><circle cx="46" cy="46" r="2" fill="#fff"/></g>
-      <circle cx="240" cy="110" r="7" fill="#e05252"/><circle cx="240" cy="110" r="2.5" fill="#e8b64c"/>
-      <g fill="#39424d"><rect x="180" y="40" width="100" height="14" rx="2"/><rect x="180" y="54" width="14" height="14" rx="2"/></g>
-    </svg>`,
-    '2048':`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-      ${grad('#1a2026','#0a0e11')}
-      <rect width="${W}" height="${H}" fill="url(#g_2048)"/>
-      <rect x="60" y="30" width="200" height="140" rx="8" fill="#2b343e"/>
-      <g font-family="system-ui" font-weight="800" text-anchor="middle">
-        <rect x="68" y="38" width="44" height="30" rx="5" fill="#e8b64c"/><text x="90" y="59" font-size="16" fill="#20180a">2</text>
-        <rect x="118" y="38" width="44" height="30" rx="5" fill="#f07d18"/><text x="140" y="59" font-size="16" fill="#fff">4</text>
-        <rect x="168" y="38" width="44" height="30" rx="5" fill="#e05252"/><text x="190" y="59" font-size="16" fill="#fff">8</text>
-        <rect x="218" y="38" width="44" height="30" rx="5" fill="#3fbf6b"/><text x="240" y="59" font-size="16" fill="#0a2818">16</text>
-        <rect x="68" y="74" width="44" height="30" rx="5" fill="#7d3bbf"/><text x="90" y="95" font-size="13" fill="#fff">32</text>
-        <rect x="118" y="74" width="44" height="30" rx="5" fill="#1d6ee0"/><text x="140" y="95" font-size="13" fill="#fff">64</text>
-        <rect x="168" y="74" width="44" height="30" rx="5" fill="#1d9e4b"/><text x="190" y="95" font-size="13" fill="#fff">128</text>
-        <rect x="218" y="74" width="44" height="30" rx="5" fill="#f7c31e"/><text x="240" y="95" font-size="12" fill="#20180a">256</text>
-        <rect x="68" y="110" width="44" height="30" rx="5" fill="#e05252"/><text x="90" y="131" font-size="12" fill="#fff">512</text>
-        <rect x="118" y="110" width="44" height="30" rx="5" fill="#7d3bbf"/><text x="140" y="131" font-size="12" fill="#fff">1k</text>
-        <rect x="168" y="110" width="44" height="30" rx="5" fill="#3a4350"/><text x="190" y="131" font-size="11" fill="#8b96a1">...</text>
-        <rect x="218" y="110" width="44" height="30" rx="5" fill="#3a4350"/><text x="240" y="131" font-size="11" fill="#8b96a1">...</text>
-      </g>
-    </svg>`,
-    'mines':`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-      ${grad('#1a2026','#0a0e11')}
-      <rect width="${W}" height="${H}" fill="url(#g_mines)"/>
-      <g font-family="system-ui" font-weight="800" text-anchor="middle">
-        <rect x="60" y="36" width="34" height="34" rx="3" fill="#2b343e"/><text x="77" y="59" font-size="16" fill="#3fbf6b">1</text>
-        <rect x="96" y="36" width="34" height="34" rx="3" fill="#2b343e"/><text x="113" y="59" font-size="16" fill="#1d6ee0">2</text>
-        <rect x="132" y="36" width="34" height="34" rx="3" fill="#2b343e"/><text x="149" y="59" font-size="16" fill="#e05252">3</text>
-        <rect x="168" y="36" width="34" height="34" rx="3" fill="#2b343e"/><text x="185" y="59" font-size="16" fill="#7d3bbf">4</text>
-        <rect x="204" y="36" width="34" height="34" rx="3" fill="#2b343e"/><text x="221" y="59" font-size="16" fill="#8e2323">5</text>
-        <rect x="240" y="36" width="34" height="34" rx="3" fill="#2b343e"/><text x="257" y="59" font-size="16" fill="#5a6670">6</text>
-        <rect x="60" y="72" width="34" height="34" rx="3" fill="#2b343e"/><text x="77" y="95" font-size="16" fill="#1d6ee0">2</text>
-        <rect x="96" y="72" width="34" height="34" rx="3" fill="#2b343e"/>
-        <circle cx="113" cy="89" r="8" fill="#1a1a1a"/><circle cx="113" cy="89" r="3" fill="#3a3a3a"/>
-        <g stroke="#1a1a1a" stroke-width="1.5"><line x1="113" y1="78" x2="113" y2="100"/><line x1="102" y1="89" x2="124" y2="89"/></g>
-        <rect x="132" y="72" width="34" height="34" rx="3" fill="#2b343e"/><text x="149" y="95" font-size="16" fill="#e05252">3</text>
-        <rect x="168" y="72" width="34" height="34" rx="3" fill="#2b343e"/><text x="185" y="95" font-size="16" fill="#3fbf6b">1</text>
-        <rect x="204" y="72" width="34" height="34" rx="3" fill="#2b343e"/><text x="221" y="95" font-size="16" fill="#1d6ee0">2</text>
-        <rect x="240" y="72" width="34" height="34" rx="3" fill="#e8b64c"/><text x="257" y="95" font-size="14" fill="#20180a">🚩</text>
-        <rect x="60" y="108" width="34" height="34" rx="3" fill="#2b343e"/><text x="77" y="131" font-size="16" fill="#3fbf6b">1</text>
-        <rect x="96" y="108" width="34" height="34" rx="3" fill="#2b343e"/>
-        <rect x="132" y="108" width="34" height="34" rx="3" fill="#2b343e"/><text x="149" y="131" font-size="16" fill="#1d6ee0">2</text>
-        <rect x="168" y="108" width="34" height="34" rx="3" fill="#2b343e"/><text x="185" y="131" font-size="16" fill="#7d3bbf">4</text>
-        <rect x="204" y="108" width="34" height="34" rx="3" fill="#2b343e"/>
-        <rect x="240" y="108" width="34" height="34" rx="3" fill="#2b343e"/><text x="257" y="131" font-size="16" fill="#e05252">3</text>
-        <rect x="60" y="144" width="34" height="34" rx="3" fill="#2b343e"/>
-        <rect x="96" y="144" width="34" height="34" rx="3" fill="#2b343e"/>
-        <rect x="132" y="144" width="34" height="34" rx="3" fill="#2b343e"/><text x="149" y="167" font-size="16" fill="#1d6ee0">2</text>
-        <rect x="168" y="144" width="34" height="34" rx="3" fill="#2b343e"/><text x="185" y="167" font-size="16" fill="#3fbf6b">1</text>
-        <rect x="204" y="144" width="34" height="34" rx="3" fill="#2b343e"/>
-        <rect x="240" y="144" width="34" height="34" rx="3" fill="#2b343e"/>
-      </g>
-    </svg>`,
-    'flappy':`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-      ${grad('#1a2630','#0a0e11')}
-      <rect width="${W}" height="${H}" fill="url(#g_flappy)"/>
-      <g fill="#43b46a">
-        <rect x="200" y="0" width="40" height="70"/>
-        <rect x="200" y="130" width="40" height="70"/>
-        <rect x="280" y="40" width="40" height="70"/>
-        <rect x="280" y="170" width="40" height="30"/>
-      </g>
-      <g fill="#1d6b36" stroke="#0a2818" stroke-width="2">
-        <rect x="200" y="0" width="40" height="70"/>
-        <rect x="200" y="130" width="40" height="70"/>
-        <rect x="280" y="40" width="40" height="70"/>
-        <rect x="280" y="170" width="40" height="30"/>
-      </g>
-      <g transform="translate(120 100)">
-        <circle cx="0" cy="0" r="14" fill="#e8b64c"/>
-        <circle cx="6" cy="-3" r="3" fill="#fff"/><circle cx="6" cy="-3" r="1.5" fill="#000"/>
-        <path d="M-10 -2 q5 -8 14 -2 l-4 4 z" fill="#f07d18"/>
-        <ellipse cx="-3" cy="3" rx="8" ry="6" fill="#d49a30" transform="rotate(-12)"/>
-      </g>
-      <text x="20" y="40" font-family="system-ui" font-size="24" font-weight="800" fill="#e8b64c">42</text>
-    </svg>`,
-    'tetris':`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-      ${grad('#1a2026','#0a0e11')}
-      <rect width="${W}" height="${H}" fill="url(#g_tetris)"/>
-      <g stroke="#0a0e11" stroke-width="1.5">
-        <rect x="40" y="30" width="18" height="18" fill="#1d6ee0"/>
-        <rect x="58" y="30" width="18" height="18" fill="#1d6ee0"/>
-        <rect x="76" y="30" width="18" height="18" fill="#1d6ee0"/>
-        <rect x="94" y="30" width="18" height="18" fill="#1d6ee0"/>
-        <rect x="40" y="48" width="18" height="18" fill="#f7c31e"/>
-        <rect x="58" y="48" width="18" height="18" fill="#f7c31e"/>
-        <rect x="76" y="48" width="18" height="18" fill="#f7c31e"/>
-        <rect x="76" y="66" width="18" height="18" fill="#f7c31e"/>
-        <rect x="40" y="84" width="18" height="18" fill="#3fbf6b"/>
-        <rect x="58" y="84" width="18" height="18" fill="#3fbf6b"/>
-        <rect x="58" y="102" width="18" height="18" fill="#3fbf6b"/>
-        <rect x="76" y="102" width="18" height="18" fill="#3fbf6b"/>
-        <rect x="40" y="120" width="18" height="18" fill="#e05252"/>
-        <rect x="58" y="120" width="18" height="18" fill="#e05252"/>
-        <rect x="76" y="120" width="18" height="18" fill="#e05252"/>
-        <rect x="94" y="120" width="18" height="18" fill="#7d3bbf"/>
-        <rect x="40" y="138" width="18" height="18" fill="#f07d18"/>
-        <rect x="58" y="138" width="18" height="18" fill="#f07d18"/>
-        <rect x="40" y="156" width="18" height="18" fill="#f07d18"/>
-        <rect x="58" y="156" width="18" height="18" fill="#1d9e4b"/>
-      </g>
-      <g stroke="#39424d" stroke-width="1" fill="#1f262e">
-        <rect x="140" y="30" width="100" height="14"/>
-        <rect x="140" y="48" width="100" height="14"/>
-        <rect x="140" y="66" width="100" height="14"/>
-      </g>
-      <g font-family="system-ui" fill="#8b96a1" font-size="9" letter-spacing="1.5">
-        <text x="146" y="40">NEXT</text>
-        <text x="246" y="40" text-anchor="end">L5</text>
-      </g>
-      <rect x="248" y="160" width="60" height="22" rx="4" fill="#2b343e"/>
-      <text x="278" y="175" text-anchor="middle" font-family="system-ui" font-size="11" font-weight="800" fill="#e8b64c">HOLD</text>
-    </svg>`
-  };
-  return frames[id] || `<svg viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="#1a2026"/><text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#8b96a1" font-family="system-ui">${id}</text></svg>`;
-}
-
-function renderGrid(){
-  const grid = document.getElementById('grid');
-  grid.innerHTML = GAMES.map(g=>`
-    <a class="card" href="${g.file}" data-id="${g.id}">
-      <div class="thumb">${thumb(g.id)}<span class="tag${g.new?' new':''}">${g.tag}</span></div>
-      <div class="body">
-        <h3>${g.name}</h3>
-        <p>${g.desc}</p>
-        <div class="meta">${g.meta.map(m=>`<span>${m}</span>`).join('')}</div>
-      </div>
-    </a>
-  `).join('');
-}
-
-// Stats: coba ambil dari worker, fallback ke angka lokal
-async function loadStats(){
+/* ---------- stats dari worker (kalau sudah dihubungkan) ---------- */
+(async function loadStats(){
   try{
-    const r = await XEENA.api('/api/stats');
-    if(r.ok && r.data){
-      document.getElementById('stPlays').textContent = (r.data.plays||0).toLocaleString();
-      document.getElementById('stUsers').textContent = (r.data.users||0).toLocaleString();
+    const r=await XEENA.api('/api/stats');
+    if(r.ok&&r.data){
+      if(typeof r.data.users==='number')
+        document.getElementById('stUsers').textContent=String(r.data.users).padStart(2,'0');
+      if(typeof r.data.plays==='number')
+        document.getElementById('stPlays').textContent=String(r.data.plays).padStart(2,'0');
     }
-  }catch(e){}
-  // kalau gagal, biarkan "—"
-  setTimeout(()=>{
-    if(document.getElementById('stPlays').textContent==='—'){
-      document.getElementById('stPlays').textContent='0';
-      document.getElementById('stUsers').textContent='0';
-    }
-  },500);
-}
-
-renderGrid();
-loadStats();
+  }catch(e){/* worker belum dihubungkan — biarkan "—" */}
+})();
 </script>
 </body>
 </html>

@@ -10,7 +10,7 @@
 <style>
   .stage{padding:24px 16px;display:flex;flex-direction:column;align-items:center;gap:14px}
   .modes{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
-  .mode{padding:7px 12px;border-radius:9px;background:var(--panel);border:1px solid var(--line);
+  .mode{padding:7px 12px;border-radius:0;background:var(--panel);border:1px solid var(--line);
     font-size:12px;font-weight:700;letter-spacing:.3px;cursor:pointer;transition:all .15s}
   .mode:hover{border-color:#3d4a56;background:var(--panel2)}
   .mode.sel{border-color:var(--gold);color:var(--gold);background:#1a1b13}
@@ -18,7 +18,7 @@
   .info b{color:var(--txt);font-variant-numeric:tabular-nums}
   .grid{display:grid;gap:8px}
   .card{
-    width:100%;aspect-ratio:1;border-radius:11px;cursor:pointer;
+    width:100%;aspect-ratio:1;border-radius:0;cursor:pointer;
     background:linear-gradient(160deg,#3a4350,#2b343e);
     border:1px solid var(--line);display:grid;place-items:center;
     font-size:34px;transition:all .15s;position:relative;overflow:hidden;
@@ -34,8 +34,8 @@
   .grid6{grid-template-columns:repeat(6,1fr);width:min(560px,96vw)}
   .grid6 .card{font-size:24px}.grid6 .card .face{font-size:22px}
   .result{font-size:18px;font-weight:800;color:var(--gold);min-height:24px}
-  .btn{padding:10px 18px;border-radius:10px;background:linear-gradient(180deg,#f0c45e,#d49a30);
-    color:#20180a;font-size:12.5px;font-weight:800;cursor:pointer;border:none}
+  .btn{padding:10px 18px;border-radius:0;background:#C8FF2E;
+    color:#141310;font-size:12.5px;font-weight:800;cursor:pointer;border:none}
   .btn:active{transform:scale(.97)}
 </style>
 </head>
@@ -44,7 +44,7 @@
   <a class="brand" href="../index.html" style="cursor:pointer">
     <div class="logo">X</div><div><div class="name"><b>Xeena</b> Games</div><div class="sub">Memory Match</div></div>
   </a>
-  <div class="spacer"></div>
+  <a class="backlink" href="../index.html">[← INDEX]</a><div class="spacer"></div>
   <div class="userchip"></div>
 </div>
 

@@ -13,27 +13,27 @@
   .info b{color:var(--gold);font-size:18px;font-variant-numeric:tabular-nums}
   .info .lbl{display:block;font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--dim);text-align:center;margin-bottom:2px}
   .info .v{font-size:20px;font-weight:800;color:var(--txt)}
-  .board{position:relative;width:min(440px,92vw);aspect-ratio:1;background:#2b343e;border-radius:11px;padding:10px;touch-action:none}
+  .board{position:relative;width:min(440px,92vw);aspect-ratio:1;background:#2b343e;border-radius:0;padding:10px;touch-action:none}
   .grid-bg{position:absolute;inset:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-  .gb-cell{background:#3a4350;border-radius:8px}
+  .gb-cell{background:#3a4350;border-radius:0}
   .tile-layer{position:absolute;inset:10px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:10px}
   .tile{
-    border-radius:8px;display:grid;place-items:center;font-weight:800;
+    border-radius:0;display:grid;place-items:center;font-weight:800;
     transition:transform .12s,opacity .15s;
     font-family:var(--mono);
   }
-  .t2{background:#e8b64c;color:#20180a}.t4{background:#f07d18;color:#fff}
+  .t2{background:#C8FF2E;color:#141310}.t4{background:#f07d18;color:#fff}
   .t8{background:#e05252;color:#fff}.t16{background:#7d3bbf;color:#fff}
   .t32{background:#1d6ee0;color:#fff}.t64{background:#1d9e4b;color:#fff}
-  .t128{background:#f7c31e;color:#20180a;font-size:0.85em}.t256{background:#e05252;color:#fff;font-size:0.85em}
+  .t128{background:#f7c31e;color:#141310;font-size:0.85em}.t256{background:#e05252;color:#fff;font-size:0.85em}
   .t512{background:#7d3bbf;color:#fff;font-size:0.85em}.t1024{background:#1d6ee0;color:#fff;font-size:0.7em}
-  .t2048{background:#3fbf6b;color:#0a2818;font-size:0.7em;box-shadow:0 0 18px #3fbf6b88}
+  .t2048{background:#3fbf6b;color:#0a2818;font-size:0.7em;box-shadow:none}
   .t-big{background:#3a4350;color:#fff;font-size:0.55em}
   .overlay{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:200}
-  .ovbox{width:min(360px,90vw);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;text-align:center}
+  .ovbox{width:min(360px,90vw);background:var(--panel);border:1px solid var(--line);border-radius:0;padding:24px;text-align:center}
   .ovbox h2{font-size:22px;font-weight:800;margin-bottom:10px}
   .ovbox p{color:var(--dim);font-size:13px;margin-bottom:18px}
-  .btn{padding:10px 18px;border-radius:10px;background:linear-gradient(180deg,#f0c45e,#d49a30);color:#20180a;font-size:12.5px;font-weight:800;cursor:pointer;border:none}
+  .btn{padding:10px 18px;border-radius:0;background:#C8FF2E;color:#141310;font-size:12.5px;font-weight:800;cursor:pointer;border:none}
   .btn:active{transform:scale(.97)}
   .btnrow{display:flex;gap:9px;justify-content:center}
   .btn.sec{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
@@ -45,7 +45,7 @@
   <a class="brand" href="../index.html" style="cursor:pointer">
     <div class="logo">X</div><div><div class="name"><b>Xeena</b> Games</div><div class="sub">2048</div></div>
   </a>
-  <div class="spacer"></div>
+  <a class="backlink" href="../index.html">[← INDEX]</a><div class="spacer"></div>
   <div class="userchip"></div>
 </div>
 

@@ -13,7 +13,7 @@
   .info b{color:var(--gold);font-size:18px;font-variant-numeric:tabular-nums}
   .info .lbl{display:block;font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--dim);text-align:center;margin-bottom:2px}
   .info .v{font-size:20px;font-weight:800;color:var(--txt)}
-  .gamearea{position:relative;width:min(420px,94vw);aspect-ratio:9/16;background:#0a0e11;border:1px solid var(--line);border-radius:12px;overflow:hidden;touch-action:none}
+  .gamearea{position:relative;width:min(420px,94vw);aspect-ratio:9/16;background:#0a0e11;border:1px solid var(--line);border-radius:0;overflow:hidden;touch-action:none}
   canvas{width:100%;height:100%;display:block}
   .score-overlay{position:absolute;top:14px;left:0;right:0;text-align:center;font-size:48px;font-weight:800;color:#fff;text-shadow:0 0 12px #000a,0 4px 8px #0006;pointer-events:none;font-family:var(--mono)}
   .start-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#000a;color:#fff;gap:12px;text-align:center;padding:20px}
@@ -21,7 +21,7 @@
   .start-overlay p{font-size:13px;color:var(--dim);max-width:280px;line-height:1.5}
   .start-overlay .tap{font-size:14px;color:var(--gold);font-weight:700;animation:pulse 1.2s infinite}
   @keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
-  .btn{padding:11px 22px;border-radius:11px;background:linear-gradient(180deg,#f0c45e,#d49a30);color:#20180a;font-size:13px;font-weight:800;cursor:pointer;border:none;box-shadow:0 4px 14px #e8b64c33}
+  .btn{padding:11px 22px;border-radius:0;background:#C8FF2E;color:#141310;font-size:13px;font-weight:800;cursor:pointer;border:none;box-shadow:3px 3px 0 #000}
   .btn:active{transform:scale(.97)}
 </style>
 </head>
@@ -30,7 +30,7 @@
   <a class="brand" href="../index.html" style="cursor:pointer">
     <div class="logo">X</div><div><div class="name"><b>Xeena</b> Games</div><div class="sub">Flappy</div></div>
   </a>
-  <div class="spacer"></div>
+  <a class="backlink" href="../index.html">[← INDEX]</a><div class="spacer"></div>
   <div class="userchip"></div>
 </div>
 
@@ -58,7 +58,7 @@ const cv=document.getElementById('c'), ctx=cv.getContext('2d');
 const so=document.getElementById('so');
 const startEl=document.getElementById('start');
 
-let W=0,H=0, bird, pipes, score, best, alive, gap=130, pipeW=58, frame=0, lastPipe=0, gravity=0.42, flap=-7.2;
+let W=0,H=0, bird, pipes, score, best, alive, gap=130, pipeW=58, frame=0, lastPipe=0, gravity=0.42, flapV=-7.2;
 
 function resize(){
   const r=cv.parentElement.getBoundingClientRect();
@@ -192,7 +192,7 @@ function draw(){
 
 function flap(){
   if(!alive){ startGame(); return; }
-  bird.vy = flap;
+  bird.vy = flapV;
 }
 
 let raf=null;
@@ -218,6 +218,8 @@ window.addEventListener('resize', ()=>{ resize(); if(!alive) draw(); });
 best=+localStorage.getItem('xeena.flappy.best')||0;
 document.getElementById('best').textContent=best;
 resize();
+/* init state minimal supaya draw() awal tidak crash (start overlay masih tampil) */
+bird={x:W*0.25,y:H/2,vy:0,r:14}; pipes=[]; score=0; alive=false; frame=0; lastPipe=0;
 draw();
 XEENA.renderUserChip();
 </script>

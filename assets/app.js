@@ -63,13 +63,19 @@ window.XEENA = (function(){
     return { ok:r.ok, status:r.status, data };
   }
 
+  // path ke halaman login, disesuaikan kedalaman halaman
+  function loginPath(){
+    return /\/games\//.test(location.pathname) ? '../login.html' : 'login.html';
+  }
+
   // ===== Render user chip di topbar (kalau ada element .userchip) =====
   function renderUserChip(){
     const chip = document.querySelector('.userchip');
     if(!chip) return;
     if(isLoggedIn()){
       const u = getUser();
-      chip.innerHTML = `<div class="av">${u?u.initials:'?'}</div><div class="em">${u?u.email:''}</div>`;
+      chip.classList.remove('out');
+      chip.innerHTML = `<span class="av">${u?u.initials:'?'}</span><span class="em">${u?u.email:''}</span>`;
       chip.title = 'Klik untuk logout';
       chip.onclick = async ()=>{
         if(!confirm('Logout sekarang?')) return;
@@ -78,13 +84,13 @@ window.XEENA = (function(){
         clearSession();
         location.reload();
       };
-      chip.style.cursor = 'pointer';
     }else{
-      chip.innerHTML = `<div class="av" style="background:var(--panel2);color:var(--dim)">?</div><div class="em" style="color:var(--dim)">Belum login</div>`;
+      chip.classList.add('out');
+      chip.innerHTML = `<span class="av">?</span><span class="em">MASUK</span>`;
       chip.title = 'Klik untuk login';
-      chip.onclick = ()=>{ location.href = '../login.html'; };
-      chip.style.cursor = 'pointer';
+      chip.onclick = ()=>{ location.href = loginPath(); };
     }
+    chip.style.cursor = 'pointer';
   }
 
   // ===== Toast helper =====
